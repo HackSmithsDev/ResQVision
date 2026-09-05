@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 class ApiEndpoints {
   /// Production API exposed through Cloudflare Tunnel.
-  static const String productionHost = 'aeromind.hacksmiths.dev';
+  static const String productionHost = 'sih.hacksmiths.dev';
 
   /// Whether the application should use the local FastAPI server.
   ///
@@ -18,21 +18,21 @@ class ApiEndpoints {
     }
 
     if (kIsWeb) {
-      return 'localhost:8000';
+      return 'localhost:8200';
     }
 
     if (Platform.isAndroid) {
       // Android Emulator -> host machine localhost
-      return '10.0.2.2:8000';
+      return '10.0.2.2:8200';
     }
 
     if (Platform.isIOS) {
       // iOS Simulator -> host machine localhost
-      return 'localhost:8000';
+      return 'localhost:8200';
     }
 
     // macOS / desktop development
-    return '127.0.0.1:8000';
+    return '127.0.0.1:8200';
   }
 
   /// API protocol.
