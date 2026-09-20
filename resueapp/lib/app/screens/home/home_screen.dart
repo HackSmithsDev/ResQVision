@@ -121,7 +121,7 @@ class HomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
                   Text(
-                    'AEROMIND COMMAND',
+                    'ResQVision COMMAND',
                     style: TextStyle(
                       color: AppColors.textPrimary,
                       fontWeight: FontWeight.bold,
@@ -380,7 +380,7 @@ class HomeScreen extends StatelessWidget {
             style: TextStyle(color: Colors.white38, fontSize: 10, fontFamily: 'monospace'),
           ),
           Text(
-            'BUILD v1.0.4 - AEROMIND',
+            'BUILD v1.0.4 - ResQVision',
             style: TextStyle(color: Colors.white38, fontSize: 10, fontFamily: 'monospace'),
           ),
         ],

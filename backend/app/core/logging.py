@@ -16,4 +16,4 @@ def setup_logging():
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
 
-logger = logging.getLogger("aeromind")
+logger = logging.getLogger("ResQVision")

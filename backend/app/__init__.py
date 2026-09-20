@@ -25,7 +25,7 @@ from app.routers.ai import router as ai_router
 
 
 def create_app() -> FastAPI:
-    """Factory to create the AeroMind FastAPI application."""
+    """Factory to create the ResQVision FastAPI application."""
 
     app = FastAPI(
         title=settings.PROJECT_NAME,
@@ -61,7 +61,7 @@ def create_app() -> FastAPI:
     @app.get("/")
     async def root():
         return {
-            "status": "AeroMind Backend Online",
+            "status": "ResQVision Backend Online",
             "environment": settings.ENVIRONMENT,
             "docs": "/docs"
         }

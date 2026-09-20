@@ -1,10 +1,10 @@
 class AppStrings {
-  static const String appName = 'AeroMind';
+  static const String appName = 'ResQVision';
   static const String tagLine = 'Autonomous Drone Telemetry & AI Control';
 
   // Auth Strings
   static const String loginTitle = 'Welcome Back';
-  static const String signupTitle = 'Create AeroMind Account';
+  static const String signupTitle = 'Create ResQVision Account';
   static const String emailHint = 'Enter your email';
   static const String passwordHint = 'Enter your password';
   static const String confirmPasswordHint = 'Confirm your password';

@@ -28,10 +28,10 @@ class SettingsOverviewPage extends ConsumerWidget {
     final initial = _getInitial(fullName, email);
     final displayName = (fullName != null && fullName.trim().isNotEmpty)
         ? fullName
-        : 'AeroMind Operator';
+        : 'ResQVision Operator';
     final displayEmail = (email != null && email.trim().isNotEmpty)
         ? email
-        : 'operator@aeromind.dev';
+        : 'operator@ResQVision.dev';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(32.0),

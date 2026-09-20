@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     # ======================
     # Project
     # ======================
-    PROJECT_NAME: str = "AeroMind"
+    PROJECT_NAME: str = "ResQVision"
     ENVIRONMENT: str = "development"
 
     # ======================
@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     MAIL_USERNAME: Optional[str] = None
     MAIL_PASSWORD: Optional[str] = None
     MAIL_FROM: Optional[str] = None
-    MAIL_FROM_NAME: Optional[str] = "AeroMind"
+    MAIL_FROM_NAME: Optional[str] = "ResQVision"
     MAIL_SERVER: Optional[str] = None
     MAIL_PORT: int = 587
 

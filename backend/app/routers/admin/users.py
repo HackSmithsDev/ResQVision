@@ -74,7 +74,7 @@ async def approve_user(
         email=user.email,
         username=user.full_name or "User",
         status="Approved",
-        message="You can now access all features of AeroMind."
+        message="You can now access all features of ResQVision."
     )
 
     return {"message": "User approved successfully"}

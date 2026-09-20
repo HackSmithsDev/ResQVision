@@ -17,12 +17,12 @@ from . import send_email
 
 async def send_welcome_email(email: str, username: str):
     html = WELCOME_HTML.format(username=username)
-    await send_email("Welcome to AeroMind", [email], html)
+    await send_email("Welcome to ResQVision", [email], html)
 
 
 async def send_otp_email(email: str, username: str, code: str):
     html = OTP_HTML.format(username=username, code=code)
-    await send_email(f"{code} is your AeroMind code", [email], html)
+    await send_email(f"{code} is your ResQVision code", [email], html)
 
 
 async def send_login_alert(email: str, username: str, time: str):
@@ -46,13 +46,13 @@ async def send_approval_result_email(email: str, username: str, status: str, mes
         status=status,
         message=message
     )
-    await send_email(f"Account {status} - AeroMind", [email], html)
+    await send_email(f"Account {status} - ResQVision", [email], html)
 
 
 async def send_new_user_request_email(username: str, email: str):
     html = NEW_USER_REQUEST_HTML.format(username=username, email=email)
     await send_email(
-        subject="New User Access Request - AeroMind",
+        subject="New User Access Request - ResQVision",
         recipients=[settings.ADMIN_EMAIL],
         html=html
     )

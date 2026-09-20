@@ -95,14 +95,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// Permanently deletes aeromind_local.db & all secure tokens from iOS Simulator storage
+  /// Permanently deletes ResQVision_local.db & all secure tokens from iOS Simulator storage
   Future<void> logout() async {
     final apiService = ref.read(apiServiceProvider);
     final storage = ref.read(storageServiceProvider);
 
     apiService.setToken('');
     
-    // Purges the aeromind_local.db file and clears FlutterSecureStorage completely
+    // Purges the ResQVision_local.db file and clears FlutterSecureStorage completely
     await storage.deleteEntireDatabase();
 
     // Reset AuthState so isAuthenticated is false

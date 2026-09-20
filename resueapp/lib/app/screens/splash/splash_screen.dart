@@ -73,7 +73,7 @@ class SplashScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'AEROMIND',
+                        'ResQVision',
                         style: TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 28,

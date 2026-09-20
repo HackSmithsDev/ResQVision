@@ -5,11 +5,11 @@ WELCOME_HTML = """
 <html>
   <body style="font-family: Arial, sans-serif; background:#f9fafb; padding:20px;">
     <div style="max-width:600px; margin:auto; background:white; padding:30px; border-radius:10px;">
-      <h2 style="color:#111827;">Welcome to AeroMind, {username}!</h2>
+      <h2 style="color:#111827;">Welcome to ResQVision, {username}!</h2>
       <p style="color:#4b5563;">
         Your account has been created successfully. Please wait for admin approval to access full features.
       </p>
-      <p style="font-size:13px; color:#9ca3af;">HackSmiths • AeroMind</p>
+      <p style="font-size:13px; color:#9ca3af;">HackSmiths • ResQVision</p>
     </div>
   </body>
 </html>
@@ -71,7 +71,7 @@ DELETE_ACCOUNT_HTML = """
     <div style="max-width:600px; margin:auto; border:1px solid #f3f4f6; padding:25px; border-radius:8px;">
       <h2>Account Deleted</h2>
       <p>Hello {username},</p>
-      <p>Your AeroMind account has been permanently deleted.</p>
+      <p>Your ResQVision account has been permanently deleted.</p>
     </div>
   </body>
 </html>
@@ -86,7 +86,7 @@ APPROVAL_RESULT_HTML = """
     <div style="max-width:600px; margin:auto; border:1px solid #e5e7eb; padding:25px; border-radius:8px;">
       <h2>Account {status}</h2>
       <p>Hi {username},</p>
-      <p>Your AeroMind account has been <strong>{status}</strong> by the admin.</p>
+      <p>Your ResQVision account has been <strong>{status}</strong> by the admin.</p>
       <p>{message}</p>
     </div>
   </body>
@@ -101,7 +101,7 @@ NEW_USER_REQUEST_HTML = """
   <body style="font-family: Arial, sans-serif; padding:20px;">
     <div style="max-width:600px; margin:auto; border:1px solid #e5e7eb; padding:25px; border-radius:8px;">
       <h2>New User Access Request</h2>
-      <p>A new user has requested access to AeroMind.</p>
+      <p>A new user has requested access to ResQVision.</p>
       <p><strong>Name:</strong> {username}</p>
       <p><strong>Email:</strong> {email}</p>
       <p>Please review and approve/reject the request.</p>

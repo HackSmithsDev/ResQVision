@@ -16,7 +16,7 @@ class StorageService {
 
   Future<Database> _initDb() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'aeromind_local.db');
+    final path = join(dbPath, 'ResQVision_local.db');
 
     return await openDatabase(
       path,
@@ -102,7 +102,7 @@ class StorageService {
     await clearToken();
   }
 
-  /// Permanently deletes aeromind_local.db file from the iOS Simulator sandbox
+  /// Permanently deletes ResQVision_local.db file from the iOS Simulator sandbox
   /// and clears stored JWT tokens.
   Future<void> deleteEntireDatabase() async {
     if (_db != null && _db!.isOpen) {
@@ -111,7 +111,7 @@ class StorageService {
     }
 
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'aeromind_local.db');
+    final path = join(dbPath, 'ResQVision_local.db');
 
     await deleteDatabase(path);
     await _secureStorage.deleteAll();

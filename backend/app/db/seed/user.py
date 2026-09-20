@@ -14,7 +14,7 @@ def get_password_hash(password: str) -> str:
 async def seed_users(db: AsyncSession) -> None:
     seed_users_data = [
         {
-            "email": "admin@aeromind.io",
+            "email": "admin@ResQVision.io",
             "password": "AdminPassword123!",
             "full_name": "System Administrator",
             "role": "admin",
@@ -24,7 +24,7 @@ async def seed_users(db: AsyncSession) -> None:
             "devices": ["admin-station-01"],
         },
         {
-            "email": "pilot@aeromind.io",
+            "email": "pilot@ResQVision.io",
             "password": "UserPassword123!",
             "full_name": "Drone Pilot",
             "role": "user",
@@ -34,7 +34,7 @@ async def seed_users(db: AsyncSession) -> None:
             "devices": ["controller-unit-alpha", "mobile-app-client"],
         },
         {
-            "email": "pending@aeromind.io",
+            "email": "pending@ResQVision.io",
             "password": "UserPassword123!",
             "full_name": "Pending Approval User",
             "role": "user",
