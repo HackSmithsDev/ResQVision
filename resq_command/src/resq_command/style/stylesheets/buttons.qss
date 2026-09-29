@@ -1,0 +1,52 @@
+QPushButton {
+    background-color: {{BG_CARD}};
+    border: 1px solid {{SURFACE_BORDER}};
+    color: {{TEXT_PRIMARY}};
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+QPushButton:hover {
+    background-color: {{VIOLET_LIGHT}};
+    color: {{INDIGO_PRIMARY}};
+    border: 1px solid {{INDIGO_ACCENT}};
+}
+
+QPushButton:pressed {
+    background-color: {{INDIGO_ACCENT}};
+    color: #FFFFFF;
+}
+
+QPushButton:disabled {
+    background-color: {{BG_WINDOW}};
+    color: {{TEXT_MUTED}};
+    border-color: {{SURFACE_BORDER_LIGHT}};
+}
+
+/* Primary Action Accent Button */
+QPushButton[variant="primary"] {
+    background-color: {{INDIGO_ACCENT}};
+    border: 1px solid {{INDIGO_ACCENT}};
+    color: #FFFFFF;
+    font-weight: 700;
+}
+
+QPushButton[variant="primary"]:hover {
+    background-color: {{INDIGO_PRIMARY}};
+    border-color: {{INDIGO_PRIMARY}};
+}
+
+/* Emergency / Critical Safety Button */
+QPushButton[variant="critical"] {
+    background-color: {{LEVEL_RED}};
+    border: 1px solid {{LEVEL_RED}};
+    color: #FFFFFF;
+    font-weight: 700;
+}
+
+QPushButton[variant="critical"]:hover {
+    background-color: #B91C1C;
+    border-color: #B91C1C;
+}

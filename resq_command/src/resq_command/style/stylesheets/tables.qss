@@ -1,0 +1,29 @@
+QTableWidget, QTableView {
+    background-color: {{BG_PANEL}};
+    border: 1px solid {{SURFACE_BORDER}};
+    border-radius: 6px;
+    gridline-color: {{SURFACE_BORDER_LIGHT}};
+    color: {{TEXT_PRIMARY}};
+    font-size: 12px;
+}
+
+QTableWidget::item, QTableView::item {
+    padding: 8px;
+    border-bottom: 1px solid {{SURFACE_BORDER_LIGHT}};
+}
+
+QTableWidget::item:selected, QTableView::item:selected {
+    background-color: {{VIOLET_LIGHT}};
+    color: {{INDIGO_PRIMARY}};
+}
+
+QHeaderView::section {
+    background-color: {{BG_CARD}};
+    color: {{TEXT_SECONDARY}};
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 8px;
+    border: none;
+    border-bottom: 1px solid {{SURFACE_BORDER}};
+}

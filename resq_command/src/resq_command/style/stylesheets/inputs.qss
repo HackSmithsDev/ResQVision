@@ -1,0 +1,70 @@
+QLineEdit {
+    background-color: {{BG_PANEL}};
+    border: 1px solid {{SURFACE_BORDER}};
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: {{TEXT_PRIMARY}};
+}
+
+QLineEdit:focus {
+    border: 1px solid {{INDIGO_ACCENT}};
+}
+
+QLineEdit:disabled {
+    background-color: {{BG_WINDOW}};
+    color: {{TEXT_MUTED}};
+}
+
+QComboBox {
+    background-color: {{BG_PANEL}};
+    border: 1px solid {{SURFACE_BORDER}};
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: {{TEXT_PRIMARY}};
+    min-height: 20px;
+}
+
+QComboBox:focus, QComboBox:on {
+    border: 1px solid {{INDIGO_ACCENT}};
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 24px;
+    border-left: 1px solid {{SURFACE_BORDER_LIGHT}};
+}
+
+QComboBox QAbstractItemView {
+    background-color: {{BG_PANEL}};
+    border: 1px solid {{SURFACE_BORDER}};
+    selection-background-color: {{VIOLET_LIGHT}};
+    selection-color: {{INDIGO_PRIMARY}};
+    outline: none;
+    padding: 4px;
+}
+
+QCheckBox {
+    spacing: 8px;
+    font-size: 12px;
+    color: {{TEXT_PRIMARY}};
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border: 1px solid {{SURFACE_BORDER}};
+    border-radius: 4px;
+    background-color: {{BG_CARD}};
+}
+
+QCheckBox::indicator:hover {
+    border-color: {{INDIGO_ACCENT}};
+}
+
+QCheckBox::indicator:checked {
+    background-color: {{INDIGO_ACCENT}};
+    border-color: {{INDIGO_ACCENT}};
+}

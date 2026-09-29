@@ -1,0 +1,41 @@
+/* Elevation surface cards */
+QFrame[variant="card"] {
+    background-color: {{BG_PANEL}};
+    border: 1px solid {{SURFACE_BORDER}};
+    border-radius: 8px;
+    padding: 14px;
+}
+
+QFrame[variant="card"]:hover {
+    border-color: {{INDIGO_ACCENT}};
+}
+
+/* Metric / Quick telemetry chips */
+QFrame[variant="chip"] {
+    background-color: {{BG_CARD}};
+    border: 1px solid {{SURFACE_BORDER}};
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+
+/* Priority status cards */
+QFrame[variant="card-critical"] {
+    background-color: {{BG_PANEL}};
+    border: 1px solid {{SURFACE_BORDER}};
+    border-left: 5px solid {{LEVEL_RED}};
+    border-radius: 6px;
+}
+
+QFrame[variant="card-warning"] {
+    background-color: {{BG_PANEL}};
+    border: 1px solid {{SURFACE_BORDER}};
+    border-left: 5px solid {{LEVEL_YELLOW}};
+    border-radius: 6px;
+}
+
+QFrame[variant="card-nominal"] {
+    background-color: {{BG_PANEL}};
+    border: 1px solid {{SURFACE_BORDER}};
+    border-left: 5px solid {{LEVEL_GREEN}};
+    border-radius: 6px;
+}

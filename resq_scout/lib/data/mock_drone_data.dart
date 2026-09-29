@@ -1,0 +1,73 @@
+import '../models/drone.dart';
+
+const _droneThumbnailAsset = 'assets/images/rescue_valley_map.png';
+
+/// Temporary local source for the drone-control flow. Replace this with a
+/// repository backed by the FastAPI client once those endpoints are available.
+final mockDrones = <Drone>[
+  Drone(
+    id: 'drone-a',
+    name: 'Drone A',
+    status: DroneStatus.active,
+    location: 'Sector B',
+    batteryPercentage: 78,
+    altitudeMeters: 84,
+    speedKmh: 32,
+    signalDbm: -65,
+    lastUpdated: DateTime.now().subtract(const Duration(seconds: 8)),
+    videoAvailable: true,
+    thumbnailUrl: _droneThumbnailAsset,
+  ),
+  Drone(
+    id: 'drone-b',
+    name: 'Drone B',
+    status: DroneStatus.active,
+    location: 'Sector C',
+    batteryPercentage: 64,
+    altitudeMeters: 61,
+    speedKmh: 27,
+    signalDbm: -72,
+    lastUpdated: DateTime.now().subtract(const Duration(seconds: 32)),
+    videoAvailable: true,
+    thumbnailUrl: _droneThumbnailAsset,
+  ),
+  Drone(
+    id: 'drone-d',
+    name: 'Drone D',
+    status: DroneStatus.active,
+    location: 'Sector A',
+    batteryPercentage: 91,
+    altitudeMeters: 120,
+    speedKmh: 40,
+    signalDbm: -58,
+    lastUpdated: DateTime.now().subtract(const Duration(seconds: 10)),
+    videoAvailable: true,
+    thumbnailUrl: _droneThumbnailAsset,
+  ),
+  Drone(
+    id: 'drone-c',
+    name: 'Drone C',
+    status: DroneStatus.charging,
+    location: 'Base Station 01',
+    batteryPercentage: 42,
+    altitudeMeters: null,
+    speedKmh: null,
+    signalDbm: null,
+    lastUpdated: DateTime.now().subtract(const Duration(minutes: 2)),
+    videoAvailable: false,
+    thumbnailUrl: _droneThumbnailAsset,
+  ),
+  Drone(
+    id: 'drone-e',
+    name: 'Drone E',
+    status: DroneStatus.offline,
+    location: 'Maintenance Bay',
+    batteryPercentage: 0,
+    altitudeMeters: null,
+    speedKmh: null,
+    signalDbm: null,
+    lastUpdated: DateTime.now().subtract(const Duration(minutes: 14)),
+    videoAvailable: false,
+    thumbnailUrl: _droneThumbnailAsset,
+  ),
+];
