@@ -89,15 +89,20 @@ async def identify(
             "provider": result.get("provider")
         }
 
-    except Exception as e:
+    except HTTPException as exc:
         # 6. Mark DB request record as failed
         ai_request.status = "failed"
-        ai_request.result = {"error": str(e)}
+        ai_request.result = {"error": exc.detail}
+        await db.commit()
+        raise
+    except Exception as exc:
+        ai_request.status = "failed"
+        ai_request.result = {"error": "AI identification failed"}
         await db.commit()
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
-            detail=str(e)
-        )
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="AI identification failed",
+        ) from exc
 
     finally:
         # 7. Always remove model from "in play" state in Redis when processing finishes

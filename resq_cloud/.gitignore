@@ -30,7 +30,6 @@ nltk_data/
 # =========================
 # Docker / OS / IDE
 # =========================
-.dockerignore
 docker-compose.override.yml
 .DS_Store
 Thumbs.db

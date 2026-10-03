@@ -15,6 +15,7 @@ passlib[bcrypt]>=1.7.4
 
 # --- Cache / Realtime ---
 redis>=5.0.3
+celery>=5.3.6
 
 # --- AI Providers ---
 openai>=1.40.0

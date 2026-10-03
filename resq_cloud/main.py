@@ -3,8 +3,8 @@ from app.core.config import settings
 
 def start_server():
     """
-    Entry point for the Skillinex FastAPI server.
-    Configured via .env settings for host, port, and debug mode.
+    Entry point for the ResQVision FastAPI server.
+    Configured via .env settings for host, port, debug mode, and worker count.
     """
     uvicorn.run(
         "app:app",  # Points to the 'app' variable in app/__init__.py

@@ -1,17 +1,27 @@
-# resq_scout
+# ResQVision Scout
 
-A new Flutter project.
+`resq_scout` is the Flutter mobile application for field operators. It is the mobile client for the ResQVision system and is organized as a standard Flutter project.
 
-## Getting Started
+## Layout
 
-This project is a starting point for a Flutter application.
+- `lib/app/` — application-level setup and shared behavior.
+- `lib/config/` — environment and app configuration.
+- `lib/data/` — data access and API-facing code.
+- `lib/models/` — application data models.
+- `lib/providers/` — state providers.
+- `lib/screens/` — operator-facing screens.
+- `lib/widgets/` — reusable UI elements.
+- `public/` — shared static resources.
+- `android/`, `ios/`, `macos/`, `linux/`, `windows/`, `web/` — Flutter platform runners and native project configuration.
+- `pubspec.yaml` — Flutter/Dart dependencies and asset declarations.
 
-A few resources to get you started if this is your first Flutter project:
+## Setup and run
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Install Flutter, then run these commands from this folder:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```sh
+flutter pub get
+flutter run
+```
+
+Configure the API base URL for the intended environment before connecting to the backend. Avoid committing signing keys, service-account files, or production credentials.
