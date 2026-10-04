@@ -17,7 +17,7 @@ passlib[bcrypt]>=1.7.4
 redis>=5.0.3
 celery>=5.3.6
 
-# --- AI Providers ---
+# --- AI Providers & Local Tactical Engine ---
 openai>=1.40.0
 groq>=0.18.0
 google-genai>=1.70.0

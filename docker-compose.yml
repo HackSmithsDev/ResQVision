@@ -1,4 +1,16 @@
 services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: resq_ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama_storage:/root/.ollama
+      - ./resq_cloud/ollama/Modelfile:/etc/ollama/Modelfile:ro
+      - ./resq_cloud/ollama/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    restart: unless-stopped
+
   api:
     build:
       context: ./resq_cloud
@@ -11,8 +23,13 @@ services:
       DEBUG: "false"
       ENVIRONMENT: production
       WORKERS_COUNT: 1
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: resq-tactical:latest
     ports:
       - "127.0.0.1:8000:8000"
+    depends_on:
+      ollama:
+        condition: service_started
     healthcheck:
       test:
         - CMD
@@ -38,6 +55,9 @@ services:
       - worker
       - --loglevel=INFO
       - --concurrency=1
+    depends_on:
+      ollama:
+        condition: service_started
     restart: unless-stopped
 
   cloudflared:
@@ -52,3 +72,7 @@ services:
       api:
         condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  ollama_storage:
+    driver: local
