@@ -4,7 +4,6 @@ Interactive export script for ResQVision Autonomy edge models.
 Deploys TFLite models, C-headers, and normalization stats interactively.
 """
 
-import os
 import shutil
 import sys
 from pathlib import Path
@@ -21,16 +20,11 @@ SOURCE_STATS = ARTIFACTS_DIR / "normalization_stats.json"
 def select_destination() -> tuple[Path, str]:
     targets = {
         "1": (
-            "FC722 model header (manual integration only)",
-            WORKSPACE_ROOT / "resq_flight" / "include" / "models",
-            "header_only",
-        ),
-        "2": (
             "resq_scout mobile / companion SBC (TFLite + Stats)",
             WORKSPACE_ROOT / "resq_scout" / "assets" / "models",
             "tflite_bundle",
         ),
-        "3": (
+        "2": (
             "Local distribution folder (autonomy/dist - All Files)",
             ROOT / "dist",
             "all",
@@ -47,11 +41,11 @@ def select_destination() -> tuple[Path, str]:
         print(f"  [{key}] {name}{exists_mark}")
         print(f"      -> {path}")
 
-    print("  [4] Custom directory (deploy all generated files)")
+    print("  [3] Custom directory (deploy all generated files)")
     print("  [q] Cancel")
 
     while True:
-        choice = input("\nEnter choice [1-4 / q] (default: 3): ").strip().lower() or "3"
+        choice = input("\nEnter choice [1-3 / q] (default: 2): ").strip().lower() or "2"
 
         if choice in ("q", "quit", "exit"):
             print("\n[!] Deployment cancelled.")
@@ -61,7 +55,7 @@ def select_destination() -> tuple[Path, str]:
             dest_path = targets[choice][1]
             mode = targets[choice][2]
             break
-        elif choice == "4":
+        elif choice == "3":
             custom_str = input("Enter destination directory: ").strip()
             if not custom_str:
                 print("Path cannot be empty. Try again.")
@@ -70,7 +64,7 @@ def select_destination() -> tuple[Path, str]:
             mode = "all"
             break
         else:
-            print("Invalid choice. Please select 1, 2, 3, 4, or q.")
+            print("Invalid choice. Please select 1, 2, 3, or q.")
 
     confirm = input(f"\nDeploy to:\n  {dest_path}\nProceed? [Y/n]: ").strip().lower()
     if confirm not in ("", "y", "yes"):
@@ -93,8 +87,8 @@ def main():
     print("\n[*] Deploying files...")
     deployed = 0
 
-    # Deploy C Header
-    if mode in ("header_only", "all") and SOURCE_HEADER.is_file():
+    # Deploy C header alongside full local bundles only.
+    if mode == "all" and SOURCE_HEADER.is_file():
         dest = dest_dir / "safety_model.h"
         shutil.copy2(SOURCE_HEADER, dest)
         print(f"  [✓] C Header (.h)     -> {dest}")

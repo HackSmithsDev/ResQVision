@@ -1,0 +1,17 @@
+# Betaflight build output
+/build/
+/dist/
+*.hex
+*.bin
+
+# Local hardware/configuration backups; review before sharing.
+/betaflight/configs/local/
+*.backup
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.iml
