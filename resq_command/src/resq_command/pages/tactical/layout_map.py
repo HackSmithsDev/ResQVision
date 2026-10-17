@@ -4,11 +4,10 @@ Uses centralized StatChip HUD metrics, clean canvas rendering, and EventBus feed
 """
 
 from collections import deque
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPainter, QColor, QPen
 from resq_command.style.palette import TacticalPalette
-from resq_command.ui.widgets.stat_chip import StatChip
 
 
 class TacticalMapCanvas(QWidget):
@@ -21,12 +20,15 @@ class TacticalMapCanvas(QWidget):
         self.trails = {}
 
     def update_drone_telemetry(self, data: dict):
-        drone_id = data.get("drone_id", "UAV-01")
+        drone_id = data.get("drone_id")
+        x, y = data.get("x"), data.get("y")
+        if not drone_id or not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+            return
         self.drones[drone_id] = data
 
         if drone_id not in self.trails:
             self.trails[drone_id] = deque(maxlen=24)
-        self.trails[drone_id].append((data.get("x", 0.0), data.get("y", 0.0)))
+        self.trails[drone_id].append((x, y))
 
         self.update()
 
@@ -63,10 +65,23 @@ class TacticalMapCanvas(QWidget):
 
         # 4. Active UAV Markers
         for drone_id, data in self.drones.items():
-            dx, dy = int(data.get("x", cx)), int(data.get("y", cy))
-            bat = data.get("battery", 100)
-            status_col = TacticalPalette.LEVEL_GREEN if bat > 25 else TacticalPalette.LEVEL_RED
-            status_bg = TacticalPalette.LEVEL_GREEN_BG if bat > 25 else TacticalPalette.LEVEL_RED_BG
+            dx, dy = int(data["x"]), int(data["y"])
+            battery = data.get("battery")
+            has_battery = isinstance(battery, (int, float))
+            status_col = (
+                TacticalPalette.LEVEL_GREEN
+                if has_battery and battery > 25
+                else TacticalPalette.LEVEL_RED
+                if has_battery
+                else TacticalPalette.TEXT_MUTED
+            )
+            status_bg = (
+                TacticalPalette.LEVEL_GREEN_BG
+                if has_battery and battery > 25
+                else TacticalPalette.LEVEL_RED_BG
+                if has_battery
+                else TacticalPalette.BG_PANEL
+            )
 
             # Status Aura Ring
             painter.setPen(QPen(QColor(status_col), 1))
@@ -80,9 +95,14 @@ class TacticalMapCanvas(QWidget):
 
             # Data Label
             painter.setPen(QColor(TacticalPalette.TEXT_PRIMARY))
-            alt = data.get("altitude", 0.0)
             callsign = data.get("callsign", drone_id)
-            painter.drawText(dx + 16, dy + 4, f"{callsign} [ALT: {alt:.1f}m | BAT: {bat}%]")
+            details = []
+            if data.get("altitude") is not None:
+                details.append(f"ALT: {data['altitude']}m")
+            if has_battery:
+                details.append(f"BAT: {battery}%")
+            suffix = f" [{' | '.join(details)}]" if details else ""
+            painter.drawText(dx + 16, dy + 4, f"{callsign}{suffix}")
 
 
 class LayoutMapPage(QWidget):
@@ -96,29 +116,21 @@ class LayoutMapPage(QWidget):
         root_layout.setContentsMargins(20, 20, 20, 20)
         root_layout.setSpacing(14)
 
-        # Top Metric HUD Bar
-        hud_bar = QHBoxLayout()
-        header_title = QLabel("FIELD OPERATIONS // SECTOR A-4")
-        header_title.setProperty("variant", "header")
-        hud_bar.addWidget(header_title)
-        hud_bar.addStretch()
-
-        # Telemetry & Status Chips (StatChip reusable component)
-        metrics = [
-            ("UAV STATUS", "2 AIRBORNE", "NOMINAL"),
-            ("HAZARD LEVEL", "YELLOW (ALERT)", "WARNING"),
-            ("DISTRESS BEACONS", "0 ACTIVE", "NOMINAL"),
-        ]
-
-        for label, val, lvl in metrics:
-            chip = StatChip(label, val, lvl, self)
-            hud_bar.addWidget(chip)
-
-        root_layout.addLayout(hud_bar)
+        self.status_label = QLabel("No local telemetry with map coordinates received.")
+        self.status_label.setProperty("variant", "header")
+        root_layout.addWidget(self.status_label)
 
         # Geo-Canvas Viewport
         self.canvas = TacticalMapCanvas(self)
         root_layout.addWidget(self.canvas, stretch=1)
 
         if self.event_bus:
-            self.event_bus.telemetry_updated.connect(self.canvas.update_drone_telemetry)
+            self.event_bus.telemetry_updated.connect(self._on_telemetry)
+
+    def _on_telemetry(self, data: dict):
+        before = len(self.canvas.drones)
+        self.canvas.update_drone_telemetry(data)
+        if len(self.canvas.drones) > before or data.get("drone_id") in self.canvas.drones:
+            self.status_label.setText(
+                f"Live local tracks: {len(self.canvas.drones)}"
+            )

@@ -4,7 +4,7 @@ from resq_command.style.palette import TacticalPalette
 class EmergencyKillDialog(QDialog):
     """Two-stage armed UAV flight termination confirmation modal."""
 
-    def __init__(self, drone_id: str = "UAV-01", parent=None):
+    def __init__(self, drone_id: str, parent=None):
         super().__init__(parent)
         self.setWindowTitle("EMERGENCY KILL SWITCH // CONFIRM TERMINATION")
         self.setFixedSize(420, 220)

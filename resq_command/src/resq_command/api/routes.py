@@ -11,6 +11,10 @@ class APIRoutes:
     TELEMETRY_LATEST: Final[str] = "/telemetry/latest"
 
     @classmethod
+    def workspace_collection(cls, collection: str) -> str:
+        return f"/workspace/{quote(collection, safe='')}"
+
+    @classmethod
     def latest_telemetry(cls, drone_id: str | None = None) -> str:
         if drone_id is None:
             return cls.TELEMETRY_LATEST

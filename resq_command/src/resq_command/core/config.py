@@ -22,6 +22,10 @@ class AppConfig(BaseSettings):
     # Runtime Environment
     env: str = Field(default="development", description="development | staging | production")
     debug_mode: bool = Field(default=True, description="Enable verbose telemetry and UI debug logs")
+    api_base_url: str = Field(
+        default="http://127.0.0.1:8000",
+        description="Base URL for shared ResQVision backend APIs",
+    )
 
     # Local Directory Roots
     base_dir: Path = Field(default_factory=lambda: Path(__file__).resolve().parent.parent.parent.parent)

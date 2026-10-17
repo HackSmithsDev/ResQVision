@@ -8,7 +8,7 @@
 | --- | --- |
 | `app/core/` | Settings, logging, and security helpers. |
 | `app/db/` | SQLAlchemy base, async database session, ORM models, and seed commands. |
-| `app/routers/` | HTTP routes grouped by auth, users, admin, AI, connection, and shared telemetry synchronization. No routes proxy commands or receiver video. |
+| `app/routers/` | HTTP routes grouped by auth, users, admin, AI, connection, owner-scoped workspace records, and shared telemetry synchronization. No routes proxy commands or receiver video. |
 | `app/schemas/` | Pydantic request and response schemas used by the routes. |
 | `app/services/` | Application services; email notifications are enqueued here for Celery, while AI identification currently returns HTTP 501 until its provider/inference contract is implemented. |
 | `app/utils/` | Shared integrations such as Redis and general helpers. |
@@ -42,6 +42,6 @@ For API-only local testing, run `docker compose up --build api`; the API is avai
 
 ## Database
 
-SQLAlchemy models are registered in `app/db/models/`. The application currently creates missing model tables during startup with `Base.metadata.create_all()`. This does not apply schema changes to existing tables.
+SQLAlchemy models are registered in `app/db/models/`. The application currently creates missing model tables during startup with `Base.metadata.create_all()`. This creates the new `workspace_records` table on existing databases but does not apply column changes to existing tables.
 
 **Migration caveat:** the checked-in Alembic history starts with `initial_skillinex_migration.py` and later revisions change course/lecture/practice tables; those revisions do not describe the current ResQVision ORM models. The historical revisions have not been rewritten because they may already be recorded in a deployed database. Do not use this Alembic chain to initialize or upgrade a production ResQVision database until its `alembic_version` and schema have been inspected and a safe baseline/forward-migration strategy has been agreed.

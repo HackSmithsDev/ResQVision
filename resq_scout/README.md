@@ -24,4 +24,10 @@ flutter pub get
 flutter run
 ```
 
-Configure the API base URL for the intended environment before connecting to the backend. Avoid committing signing keys, service-account files, or production credentials.
+Configure the API base URL for the intended environment before connecting to the backend:
+
+```sh
+flutter run --dart-define=RESQ_API_BASE_URL=https://api.example.invalid
+```
+
+The Scout account screen signs in through the backend. Fleet, missions, reports, team messages, emergency actions, and AI insights are loaded from authenticated `/workspace/{collection}` routes; empty, loading, authentication, and error states are shown without demo records. Aircraft commands and receiver video remain local to Command/FC hardware. Avoid committing signing keys, service-account files, or production credentials.

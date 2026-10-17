@@ -21,6 +21,7 @@ from app.routers.admin import router as admin_router
 from app.routers.connection import router as connection_router
 from app.routers.telemetry import router as telemetry_router
 from app.routers.ai import router as ai_router
+from app.routers.workspace import router as workspace_router
 
 
 def create_app() -> FastAPI:
@@ -55,6 +56,7 @@ def create_app() -> FastAPI:
     app.include_router(connection_router, prefix="/connection", tags=["Connection"])
     app.include_router(telemetry_router, prefix="/telemetry", tags=["Telemetry"])
     app.include_router(ai_router, prefix="/ai", tags=["AI"])
+    app.include_router(workspace_router, prefix="/workspace", tags=["Workspace"])
 
     @app.get("/")
     async def root():

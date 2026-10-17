@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 import httpx
 
 from resq_command.api.routes import APIRoutes
+from resq_command.core.config import settings
 
 
 class ResQVisionAPIClient:
@@ -12,11 +13,11 @@ class ResQVisionAPIClient:
 
     def __init__(
         self,
-        base_url: str = "http://127.0.0.1:8000",
+        base_url: Optional[str] = None,
         token: Optional[str] = None,
         timeout: float = 6.0,
     ):
-        self.base_url = base_url.rstrip("/")
+        self.base_url = (base_url or settings.api_base_url).rstrip("/")
         self.timeout = timeout
         self.headers: Dict[str, str] = {
             "Content-Type": "application/json",
@@ -89,6 +90,18 @@ class ResQVisionAPIClient:
             response = client.get(APIRoutes.latest_telemetry(drone_id))
             response.raise_for_status()
             return response.json()
+
+    def list_workspace_records(self, collection: str) -> list[Dict[str, Any]]:
+        with self._get_client() as client:
+            response = client.get(APIRoutes.workspace_collection(collection))
+            response.raise_for_status()
+            records = response.json()
+        if not isinstance(records, list) or any(
+            not isinstance(record, dict) or not isinstance(record.get("data"), dict)
+            for record in records
+        ):
+            raise ValueError("Backend workspace response has an invalid format.")
+        return records
 
     async def get_current_user_async(self) -> Dict[str, Any]:
         async with self._get_async_client() as client:

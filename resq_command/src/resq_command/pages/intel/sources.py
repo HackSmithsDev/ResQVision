@@ -35,12 +35,12 @@ class SourcesPage(QWidget):
         self.video_badge: StatusBadge | None = None
         self.video_client: VideoStreamClient | None = None
 
-        feeds = [
-            ("LOCAL UAV VIDEO RECEIVER", "DIRECT GROUND-STATION INPUT"),
-            ("TEAM ALPHA BODYCAM", "NO LOCAL INPUT CONFIGURED"),
-            ("PERIMETER CCTV #04", "NO LOCAL INPUT CONFIGURED"),
-            ("THERMAL SENSOR 02", "NO LOCAL INPUT CONFIGURED"),
-        ]
+        video_source_name = (
+            settings.video_device_name
+            or settings.video_stream_uri
+            or "No local video source configured"
+        )
+        feeds = [("LOCAL VIDEO INPUT", video_source_name)]
 
         for i, (name, meta) in enumerate(feeds):
             feed_card = QFrame()
@@ -68,12 +68,10 @@ class SourcesPage(QWidget):
             footer.addWidget(meta_lbl)
             c_lay.addLayout(footer)
 
-            if i == 0:
-                self.video_canvas = canvas
-                self.video_badge = badge
+            self.video_canvas = canvas
+            self.video_badge = badge
 
-            row, col = divmod(i, 2)
-            grid.addWidget(feed_card, row, col)
+            grid.addWidget(feed_card, 0, 0)
 
         root.addLayout(grid)
         if event_bus:

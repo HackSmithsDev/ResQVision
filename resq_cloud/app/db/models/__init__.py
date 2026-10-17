@@ -3,6 +3,7 @@ from app.db.base import Base
 from app.db.models.account import User, Device, AdminLog
 from app.db.models.operations import Connection, EventLog
 from app.db.models.intelligence import AIModel, AIRequest
+from app.db.models.workspace import WorkspaceRecord
 
 __all__ = [
     "Base",
@@ -13,4 +14,5 @@ __all__ = [
     "EventLog",
     "AIModel",
     "AIRequest",
+    "WorkspaceRecord",
 ]

@@ -61,3 +61,39 @@ def test_login_uses_existing_shared_backend_route_and_stores_access_token(
 def test_latest_telemetry_path_encodes_drone_identifier() -> None:
     assert APIRoutes.latest_telemetry() == "/telemetry/latest"
     assert APIRoutes.latest_telemetry("drone/one") == "/telemetry/latest/drone%2Fone"
+
+
+def test_workspace_collection_path_is_encoded_and_authenticated(monkeypatch) -> None:
+    requests = []
+    client = ResQVisionAPIClient(token="operator-token")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "id": "record-1",
+                    "collection": "environmental-readings",
+                    "data": {"sensor": "field-unit"},
+                }
+            ],
+        )
+
+    monkeypatch.setattr(
+        client,
+        "_get_client",
+        lambda: httpx.Client(
+            base_url=client.base_url,
+            headers=client.headers,
+            transport=httpx.MockTransport(handler),
+        ),
+    )
+
+    records = client.list_workspace_records("environmental-readings")
+
+    assert requests[0].url.path == "/workspace/environmental-readings"
+    authorization = requests[0].headers["Authorization"]
+    assert authorization.startswith("Bearer ")
+    assert authorization.endswith("-token")
+    assert records[0]["data"] == {"sensor": "field-unit"}

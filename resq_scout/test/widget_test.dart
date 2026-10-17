@@ -1,25 +1,94 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:resq_scout/app/app.dart';
+import 'package:resq_scout/data/backend_api.dart';
 import 'package:resq_scout/models/drone.dart';
-import 'package:resq_scout/models/emergency_action.dart';
-import 'package:resq_scout/providers/rescue_session_provider.dart';
-import 'package:resq_scout/screens/drone_control_page.dart';
-import 'package:resq_scout/screens/live_footage_page.dart';
 import 'package:resq_scout/screens/manual_control_page.dart';
+import 'package:resq_scout/widgets/backend_collection_page.dart';
 import 'package:resq_scout/widgets/emergency_hold_button.dart';
 
 void main() {
-  testWidgets('home dashboard renders', (WidgetTester tester) async {
+  testWidgets('home dashboard renders without demo records', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const ProviderScope(child: RescueVisionApp()));
 
     expect(find.text('ResQVision'), findsOneWidget);
+    expect(find.textContaining('Drone A'), findsNothing);
   });
 
-  testWidgets('emergency hold only activates after two seconds', (
+  testWidgets('backend collection displays an honest empty state', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          accessTokenProvider.overrideWith(_TestAccessTokenNotifier.new),
+          workspaceRecordsProvider('drones')
+              .overrideWith((ref) async => <Map<String, dynamic>>[]),
+        ],
+        child: const MaterialApp(
+          home: BackendCollectionPage(
+            title: 'Fleet',
+            subtitle: 'Backend fleet records',
+            collection: 'drones',
+            icon: Icons.flight_outlined,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('No Fleet yet'), findsOneWidget);
+    expect(find.textContaining('backend /workspace/drones'), findsOneWidget);
+  });
+
+  testWidgets('backend collection renders dynamically supplied records', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          workspaceRecordsProvider('drones').overrideWith(
+            (ref) async => [
+              {
+                'id': 'record-1',
+                'name': 'Live backend aircraft',
+                'status': 'ready',
+              },
+            ],
+          ),
+        ],
+        child: const MaterialApp(
+          home: BackendCollectionPage(
+            title: 'Fleet',
+            subtitle: 'Backend fleet records',
+            collection: 'drones',
+            icon: Icons.flight_outlined,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Live backend aircraft'), findsOneWidget);
+    expect(find.textContaining('ready'), findsOneWidget);
+  });
+
+  testWidgets('manual control clearly states it is unavailable', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: ManualControlPage(droneId: 'aircraft-1')),
+    );
+
+    expect(find.text('Control · aircraft-1'), findsOneWidget);
+    expect(find.textContaining('ELRS handset'), findsOneWidget);
+  });
+
+  testWidgets('emergency hold activates only after two seconds', (
     WidgetTester tester,
   ) async {
     var activationCount = 0;
@@ -52,69 +121,7 @@ void main() {
     expect(activationCount, 1);
   });
 
-  testWidgets('drone control opens manual control for an expanded drone', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(_droneTestApp());
-    expect(find.text('Drone Control'), findsOneWidget);
-
-    await tester.tap(find.text('Drone A'));
-    await tester.pumpAndSettle();
-    expect(find.text('Live Footage').hitTestable(), findsOneWidget);
-    expect(find.text('Manual Control').hitTestable(), findsOneWidget);
-
-    await tester.tap(find.text('Manual Control').hitTestable());
-    await tester.pumpAndSettle();
-    expect(find.text('Drone A · Manual control'), findsOneWidget);
-    expect(find.text('Land'), findsOneWidget);
-  });
-
-  testWidgets('drone list fits a portrait phone without overflow', (
-    WidgetTester tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(390, 844));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-
-    await tester.pumpWidget(_droneTestApp());
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Drone A'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Manual Control').hitTestable(), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
-  test('emergency session can be submitted, progress, and reset', () async {
-    final container = ProviderContainer();
-    addTearDown(container.dispose);
-    final session = container.read(rescueSessionProvider.notifier);
-    session.submitEmergency(EmergencyActionType.medical);
-
-    expect(
-      container
-          .read(rescueSessionProvider)
-          .statusFor(EmergencyActionType.medical),
-      EmergencyRequestStatus.dispatched,
-    );
-
-    await Future<void>.delayed(const Duration(seconds: 2));
-    expect(
-      container
-          .read(rescueSessionProvider)
-          .statusFor(EmergencyActionType.medical),
-      EmergencyRequestStatus.enRoute,
-    );
-
-    session.cancelEmergency(EmergencyActionType.medical);
-    expect(
-      container
-          .read(rescueSessionProvider)
-          .statusFor(EmergencyActionType.medical),
-      EmergencyRequestStatus.idle,
-    );
-  });
-
-  test('drone serializes cleanly for a future backend', () {
+  test('drone serializes cleanly for backend data', () {
     final drone = Drone.fromJson({
       'id': 'drone-test',
       'name': 'Test Drone',
@@ -133,28 +140,7 @@ void main() {
   });
 }
 
-Widget _droneTestApp() => ProviderScope(
-  child: MaterialApp.router(
-    routerConfig: GoRouter(
-      initialLocation: '/drones',
-      routes: [
-        GoRoute(
-          path: '/drones',
-          builder: (_, _) => const DroneControlPage(),
-          routes: [
-            GoRoute(
-              path: ':droneId/live',
-              builder: (_, state) =>
-                  LiveFootagePage(droneId: state.pathParameters['droneId']!),
-            ),
-            GoRoute(
-              path: ':droneId/manual',
-              builder: (_, state) =>
-                  ManualControlPage(droneId: state.pathParameters['droneId']!),
-            ),
-          ],
-        ),
-      ],
-    ),
-  ),
-);
+class _TestAccessTokenNotifier extends AccessTokenNotifier {
+  @override
+  String? build() => 'test-token';
+}
