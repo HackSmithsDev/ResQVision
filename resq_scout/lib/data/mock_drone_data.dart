@@ -1,9 +1,7 @@
 import '../models/drone.dart';
 
-const _droneThumbnailAsset = 'assets/images/rescue_valley_map.png';
-
-/// Temporary local source for the drone-control flow. Replace this with a
-/// repository backed by the FastAPI client once those endpoints are available.
+/// Temporary local source for the drone-control flow until shared fleet data
+/// is available from the backend.
 final mockDrones = <Drone>[
   Drone(
     id: 'drone-a',
@@ -15,8 +13,8 @@ final mockDrones = <Drone>[
     speedKmh: 32,
     signalDbm: -65,
     lastUpdated: DateTime.now().subtract(const Duration(seconds: 8)),
-    videoAvailable: true,
-    thumbnailUrl: _droneThumbnailAsset,
+    videoAvailable: false,
+    thumbnailUrl: null,
   ),
   Drone(
     id: 'drone-b',
@@ -28,8 +26,8 @@ final mockDrones = <Drone>[
     speedKmh: 27,
     signalDbm: -72,
     lastUpdated: DateTime.now().subtract(const Duration(seconds: 32)),
-    videoAvailable: true,
-    thumbnailUrl: _droneThumbnailAsset,
+    videoAvailable: false,
+    thumbnailUrl: null,
   ),
   Drone(
     id: 'drone-d',
@@ -41,8 +39,8 @@ final mockDrones = <Drone>[
     speedKmh: 40,
     signalDbm: -58,
     lastUpdated: DateTime.now().subtract(const Duration(seconds: 10)),
-    videoAvailable: true,
-    thumbnailUrl: _droneThumbnailAsset,
+    videoAvailable: false,
+    thumbnailUrl: null,
   ),
   Drone(
     id: 'drone-c',
@@ -55,7 +53,7 @@ final mockDrones = <Drone>[
     signalDbm: null,
     lastUpdated: DateTime.now().subtract(const Duration(minutes: 2)),
     videoAvailable: false,
-    thumbnailUrl: _droneThumbnailAsset,
+    thumbnailUrl: null,
   ),
   Drone(
     id: 'drone-e',
@@ -68,6 +66,6 @@ final mockDrones = <Drone>[
     signalDbm: null,
     lastUpdated: DateTime.now().subtract(const Duration(minutes: 14)),
     videoAvailable: false,
-    thumbnailUrl: _droneThumbnailAsset,
+    thumbnailUrl: null,
   ),
 ];

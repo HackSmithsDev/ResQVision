@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../app/theme/app_colors.dart';
 
-const mapImage = 'assets/images/rescue_valley_map.png';
 const ink = AppColors.ink;
 
 class MapMarker extends StatelessWidget {

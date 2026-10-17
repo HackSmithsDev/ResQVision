@@ -21,7 +21,7 @@ SOURCE_STATS = ARTIFACTS_DIR / "normalization_stats.json"
 def select_destination() -> tuple[Path, str]:
     targets = {
         "1": (
-            "resq_flight firmware (C-Header only)",
+            "FC722 model header (manual integration only)",
             WORKSPACE_ROOT / "resq_flight" / "include" / "models",
             "header_only",
         ),

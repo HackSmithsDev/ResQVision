@@ -38,9 +38,9 @@ class MissionProtocol(BaseClientModel):
 
 
 class HardwareConfig(BaseClientModel):
-    """Saved hardware COM ports and telemetry sockets."""
+    """Saved local telemetry and video input configuration."""
 
-    lora_serial_port: str = "/dev/cu.usbserial-110"
-    mavlink_udp_port: int = 14550
-    rtsp_base_port: int = 8554
-    simulation_mode: bool = True
+    telemetry_udp_port: int = 14550
+    video_device_name: Optional[str] = None
+    video_stream_uri: Optional[str] = None
+    simulation_mode: bool = False

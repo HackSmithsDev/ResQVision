@@ -1,18 +1,24 @@
 """
-ResQVision Command - Live UDP Telemetry Client
-Ingests binary/JSON MAVLink datagrams and pipes them onto the EventBus.
+ResQVision Command - Local UDP Telemetry Client
+Ingests JSON datagrams from a local telemetry adapter and emits them on the EventBus.
 """
 
-import socket
 import json
+import logging
+import socket
+from json import JSONDecodeError
+
 from PySide6.QtCore import QThread, Signal
+
+logger = logging.getLogger(__name__)
 
 
 class UDPTelemetryClient(QThread):
-    """Listens on UDP socket for drone autopilot and sensor datagrams."""
+    """Listens for JSON telemetry datagrams from the local ground-station receiver."""
 
     packet_received = Signal(dict)
     connection_status_changed = Signal(bool)
+    error_occurred = Signal(str)
 
     def __init__(self, host: str = "0.0.0.0", port: int = 14550, event_bus=None, parent=None):
         super().__init__(parent)
@@ -20,7 +26,7 @@ class UDPTelemetryClient(QThread):
         self.port = port
         self.event_bus = event_bus
         self.is_running = False
-        self.sock: socket.socket = None
+        self.sock: socket.socket | None = None
 
     def run(self):
         self.is_running = True
@@ -29,26 +35,46 @@ class UDPTelemetryClient(QThread):
             self.sock.bind((self.host, self.port))
             self.sock.settimeout(1.0)
             self.connection_status_changed.emit(True)
-        except Exception:
+        except OSError as exc:
+            self._report_error(f"Unable to bind telemetry receiver on {self.host}:{self.port}: {exc}")
+            if self.sock:
+                self.sock.close()
+                self.sock = None
             self.connection_status_changed.emit(False)
             return
 
-        while self.is_running:
-            try:
-                data, _ = self.sock.recvfrom(4096)
-                packet = json.loads(data.decode("utf-8"))
-                
+        try:
+            while self.is_running:
+                try:
+                    data, _ = self.sock.recvfrom(4096)
+                except socket.timeout:
+                    continue
+                except OSError as exc:
+                    if self.is_running:
+                        self._report_error(f"Telemetry receiver failed: {exc}")
+                    break
+
+                try:
+                    packet = json.loads(data.decode("utf-8"))
+                except (UnicodeDecodeError, JSONDecodeError) as exc:
+                    self._report_error(f"Ignoring invalid telemetry datagram: {exc}")
+                    continue
+
+                if not isinstance(packet, dict):
+                    self._report_error("Ignoring telemetry datagram: expected a JSON object.")
+                    continue
+
                 self.packet_received.emit(packet)
                 if self.event_bus:
                     self.event_bus.telemetry_updated.emit(packet)
-            except socket.timeout:
-                continue
-            except Exception:
-                continue
-
-        if self.sock:
+        finally:
             self.sock.close()
-        self.connection_status_changed.emit(False)
+            self.sock = None
+            self.connection_status_changed.emit(False)
+
+    def _report_error(self, message: str) -> None:
+        logger.error(message)
+        self.error_occurred.emit(message)
 
     def stop(self):
         self.is_running = False

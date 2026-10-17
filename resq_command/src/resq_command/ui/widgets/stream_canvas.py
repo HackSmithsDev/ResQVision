@@ -8,11 +8,15 @@ class StreamCanvas(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.frame: QImage = None
+        self.frame: QImage | None = None
         self.setStyleSheet(f"background-color: #000000; border: 1px solid {TacticalPalette.SURFACE_BORDER}; border-radius: 6px;")
 
     def update_frame(self, q_img: QImage):
         self.frame = q_img
+        self.update()
+
+    def clear_frame(self):
+        self.frame = None
         self.update()
 
     def paintEvent(self, event):

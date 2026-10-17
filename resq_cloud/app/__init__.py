@@ -19,7 +19,6 @@ from app.routers.auth import router as auth_router
 from app.routers.users import router as users_router
 from app.routers.admin import router as admin_router
 from app.routers.connection import router as connection_router
-from app.routers.commands import router as commands_router
 from app.routers.telemetry import router as telemetry_router
 from app.routers.ai import router as ai_router
 
@@ -54,7 +53,6 @@ def create_app() -> FastAPI:
     app.include_router(users_router, prefix="/users", tags=["Users"])
     app.include_router(admin_router, prefix="/admin", tags=["Admin"])
     app.include_router(connection_router, prefix="/connection", tags=["Connection"])
-    app.include_router(commands_router, prefix="/commands", tags=["Commands"])
     app.include_router(telemetry_router, prefix="/telemetry", tags=["Telemetry"])
     app.include_router(ai_router, prefix="/ai", tags=["AI"])
 

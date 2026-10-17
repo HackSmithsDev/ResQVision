@@ -243,20 +243,26 @@ class RescueModeScreen extends ConsumerWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(11),
-            child: Image.asset(
-              mapImage,
+            child: const SizedBox(
               height: 70,
               width: double.infinity,
-              fit: BoxFit.cover,
+              child: ColoredBox(
+                color: Color(0xFF111B30),
+                child: Center(
+                  child: Icon(
+                    Icons.videocam_off_rounded,
+                    color: Colors.white70,
+                    size: 28,
+                  ),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 6),
           const Row(
             children: [
-              Icon(Icons.circle, color: Color(0xFF31D58A), size: 10),
-              SizedBox(width: 6),
               Text(
-                'Live Drone Feed',
+                'Ground video unavailable',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,

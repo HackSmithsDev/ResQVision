@@ -1,6 +1,6 @@
 """
 ResQVision Command Entry Point
-Bootstraps the QApplication, Theme Engine, Central Event Bus, and Simulation Thread.
+Bootstraps the QApplication, Theme Engine, Central Event Bus, and local telemetry input.
 """
 
 import sys
@@ -14,6 +14,8 @@ if str(SRC_DIR) not in sys.path:
 from PySide6.QtWidgets import QApplication
 from resq_command import AppShell, EventBus
 from resq_command.api.mock_client import MockTelemetryClient
+from resq_command.api.telemetry_client import UDPTelemetryClient
+from resq_command.core.config import settings
 from resq_command.style.theme_manager import ThemeManager
 
 
@@ -33,12 +35,33 @@ def main():
     shell = AppShell(event_bus)
     shell.show()
 
-    # 5. Launch Background Telemetry & Alert Simulator Thread
-    mock_sim = MockTelemetryClient(event_bus)
-    mock_sim.start()
+    # 5. Use simulated telemetry for demos or listen to the local receiver.
+    telemetry_client = None
 
-    # 6. Ensure clean background thread termination on exit
-    app.aboutToQuit.connect(mock_sim.stop)
+    def restart_telemetry_client():
+        nonlocal telemetry_client
+        if telemetry_client is not None:
+            telemetry_client.stop()
+
+        if settings.enable_mock_simulator:
+            telemetry_client = MockTelemetryClient(event_bus)
+        else:
+            telemetry_client = UDPTelemetryClient(
+                host="0.0.0.0",
+                port=settings.telemetry_udp_port,
+                event_bus=event_bus,
+            )
+        telemetry_client.start()
+
+    def stop_telemetry_client():
+        if telemetry_client is not None:
+            telemetry_client.stop()
+
+    event_bus.settings_changed.connect(restart_telemetry_client)
+    restart_telemetry_client()
+
+    # 6. Ensure clean background thread termination on exit.
+    app.aboutToQuit.connect(stop_telemetry_client)
 
     # 7. Start the main event loop
     sys.exit(app.exec())

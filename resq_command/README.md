@@ -1,6 +1,6 @@
 # ResQVision Command
 
-`resq_command` is the PySide6 desktop command console for operator-side control and monitoring. It is packaged as a Python application using `pyproject.toml`.
+`resq_command` is the single PySide6 desktop ground station for operator-side monitoring. It reads local telemetry and the HDMI video capture device. The ELRS handset talks directly to the receiver on the FC722; aircraft commands and video do not pass through cloud routes or a second command service. Shared cloud data may use the existing backend API; this app does not expose its own server routes.
 
 ## Layout
 
@@ -21,4 +21,6 @@ pip install -e ".[dev]"
 resq-command
 ```
 
-Configure the backend URL and operator settings through the application's configuration before connecting it to a live system. Use `pytest` to run the test suite.
+The ELRS 2.4 GHz handset talks directly to the receiver wired to the FC722; `resq_command` and the cloud do not relay or originate those RC packets. By default, the app listens for local JSON/UDP telemetry; set `RESQ_ENABLE_MOCK_SIMULATOR=true` to enable demo telemetry. Betaflight MSP telemetry is not currently implemented. Connect the 5.8 GHz receiver's HDMI output through a capture card and set `RESQ_VIDEO_DEVICE_NAME` to that device's exact OS camera name. A local RTSP/HTTP URL can alternatively be configured with `RESQ_VIDEO_STREAM_URI`. Do not send radio commands or receiver video through cloud endpoints.
+
+Run `pytest` from this folder to include the Command tests.

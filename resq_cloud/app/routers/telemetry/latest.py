@@ -8,7 +8,7 @@ router = APIRouter()
 
 @router.get("/latest", response_model=TelemetryData)
 async def get_latest_telemetry():
-    """Fallback for global singleton telemetry"""
+    """Return the latest telemetry synchronized by the ground station."""
     data = await redis_client.get("telemetry:latest")
     if not data:
         raise HTTPException(status_code=404, detail="No telemetry data available")
@@ -17,7 +17,7 @@ async def get_latest_telemetry():
 
 @router.get("/latest/{drone_id}", response_model=TelemetryData)
 async def get_drone_specific_telemetry(drone_id: str):
-    """Fetch live telemetry for a specific drone or hardware ID via ELRS/USB link"""
+    """Return the latest ground-station-synchronized telemetry for one drone."""
     data = await redis_client.get(f"telemetry:drone:{drone_id}")
 
     if not data:

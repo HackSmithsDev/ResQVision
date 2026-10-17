@@ -1,14 +1,14 @@
 # ResQVision Cloud API
 
-`resq_cloud` is the FastAPI service used by the mobile and desktop clients. It handles authentication, user/admin operations, drone commands, connections, telemetry, and AI model state. PostgreSQL stores persistent records; Redis stores transient tokens, control state, and connection data.
+`resq_cloud` is the shared FastAPI service for authentication, user/admin operations, telemetry synchronization, and AI model state. It does not relay flight commands, radio traffic, or video: ELRS commands go directly from the handset to the receiver on the FC722, and the 5.8 GHz receiver feeds the ground station's HDMI capture card. PostgreSQL stores persistent records; Redis stores transient tokens and telemetry state.
 
 ## Layout
 
 | Path | Responsibility |
 | --- | --- |
-| `app/core/` | Settings, logging, security helpers, and WebSocket support. |
+| `app/core/` | Settings, logging, and security helpers. |
 | `app/db/` | SQLAlchemy base, async database session, ORM models, and seed commands. |
-| `app/routers/` | HTTP/WebSocket API routes grouped by auth, users, admin, AI, commands, connection, and telemetry. |
+| `app/routers/` | HTTP routes grouped by auth, users, admin, AI, connection, and shared telemetry synchronization. No routes proxy commands or receiver video. |
 | `app/schemas/` | Pydantic request and response schemas used by the routes. |
 | `app/services/` | Application services; email notifications are enqueued here for Celery, while AI identification currently returns HTTP 501 until its provider/inference contract is implemented. |
 | `app/utils/` | Shared integrations such as Redis and general helpers. |
@@ -36,7 +36,7 @@ docker compose up --build
 
 In Cloudflare Zero Trust, configure the tunnel's public hostname to use the internal service URL `http://api:8000`. The `cloudflared` container is intentionally separate from the API image: it has its own lifecycle and receives the tunnel token from the root `.env` at runtime. The API image does not contain the token or `.env`.
 
-The `worker` service runs `celery -A app.workers.celery_app:celery_app worker`. Signup, password-reset, account, login-alert, and approval emails are sent through the `resq_cloud.email.send` Celery task. The worker and API both need the same Redis and mail configuration.
+The `worker` service runs `celery -A app.workers.celery_app:celery_app worker`. Signup, password-reset, account, login-alert, and approval emails are sent through the `resq_cloud.email.send` Celery task. The worker and API both need the same Redis and mail configuration. There are no cloud command or video-relay routes; radio control and receiver video stay local to the ground station.
 
 For API-only local testing, run `docker compose up --build api`; the API is available at `http://127.0.0.1:8000` and its OpenAPI UI at `/docs`.
 

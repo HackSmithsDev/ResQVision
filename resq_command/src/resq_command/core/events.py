@@ -14,6 +14,7 @@ class EventBus(QObject):
 
     # --- Navigation & Category Switching ---
     navigate_requested = Signal(str, int)  # (category_id, sub_page_index)
+    settings_changed = Signal()
 
     # --- Telemetry & Sensor Ingestion ---
     telemetry_updated = Signal(dict)       # Ingests DroneTelemetry dict
@@ -32,5 +33,4 @@ class EventBus(QObject):
     jarvis_action_dispatched = Signal(str, dict) # (action_name, parameters)
 
     # --- Hardware & Comms Link Status ---
-    serial_port_connected = Signal(str, bool)   # (port_name, is_connected)
     telemetry_stream_loss = Signal(str)         # (drone_id) -> Signal loss alert

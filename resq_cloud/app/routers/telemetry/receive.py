@@ -18,12 +18,15 @@ async def receive_telemetry(
     db: AsyncSession = Depends(get_db)
 ):
     # Add timestamp if not present
-    payload = data.dict()
+    payload = data.model_dump()
     if not payload.get("timestamp"):
         payload["timestamp"] = datetime.now(timezone.utc).isoformat()
 
     # Save latest telemetry in Redis
-    await redis_client.set("telemetry:latest", json.dumps(payload, default=str))
+    encoded_payload = json.dumps(payload, default=str)
+    await redis_client.set("telemetry:latest", encoded_payload)
+    if data.drone_id:
+        await redis_client.set(f"telemetry:drone:{data.drone_id}", encoded_payload)
 
     # Check for critical events
     if data.battery is not None and data.battery < 20:

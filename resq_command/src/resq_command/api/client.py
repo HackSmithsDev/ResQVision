@@ -1,24 +1,14 @@
-"""
-ResQVision Command - HTTP API Client
-Handles REST communication with the FastAPI backend for ground station operations.
-"""
+"""Client for shared backend account and telemetry APIs."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
+
 import httpx
 
 from resq_command.api.routes import APIRoutes
-from resq_command.db.models import (
-    DroneTelemetry,
-    IncidentTicket,
-    InventoryItem,
-    NotificationAlert,
-    RescueSquad,
-    StreamSource,
-)
 
 
 class ResQVisionAPIClient:
-    """Client for FastAPI backend syncing tactical, intel, logistics, and command data."""
+    """Calls existing shared backend APIs; hardware control stays local."""
 
     def __init__(
         self,
@@ -35,9 +25,12 @@ class ResQVisionAPIClient:
         if token:
             self.set_token(token)
 
-    def set_token(self, token: str):
-        """Update bearer token for authenticated requests."""
-        self.headers["Authorization"] = f"Bearer {token}"
+    def set_token(self, token: str) -> None:
+        """Update or clear the bearer token used for authenticated requests."""
+        if token:
+            self.headers["Authorization"] = f"Bearer {token}"
+        else:
+            self.headers.pop("Authorization", None)
 
     def _get_client(self) -> httpx.Client:
         return httpx.Client(
@@ -53,93 +46,70 @@ class ResQVisionAPIClient:
             timeout=self.timeout,
         )
 
-    # -------------------------------------------------------------------------
-    # Tactical & Fleet
-    # -------------------------------------------------------------------------
-    def get_drones(self) -> List[DroneTelemetry]:
+    def login(
+        self,
+        email: str,
+        password: str,
+        device_id: str,
+        device_info: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        payload = {
+            "email": email,
+            "password": password,
+            "device_id": device_id,
+            "device_info": device_info,
+        }
         with self._get_client() as client:
-            resp = client.get(APIRoutes.DRONES)
-            resp.raise_for_status()
-            return [DroneTelemetry.model_validate(item) for item in resp.json()]
+            response = client.post(APIRoutes.LOGIN, json=payload)
+            response.raise_for_status()
+            result = response.json()
 
-    async def get_drones_async(self) -> List[DroneTelemetry]:
+        if not isinstance(result, dict) or not isinstance(result.get("access_token"), str):
+            raise ValueError("Backend login response did not include an access token.")
+        self.set_token(result["access_token"])
+        return result
+
+    def get_current_user(self) -> Dict[str, Any]:
+        with self._get_client() as client:
+            response = client.get(APIRoutes.CURRENT_USER)
+            response.raise_for_status()
+            return response.json()
+
+    def submit_telemetry(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        with self._get_client() as client:
+            response = client.post(APIRoutes.TELEMETRY_RECEIVE, json=payload)
+            response.raise_for_status()
+            return response.json()
+
+    def get_latest_telemetry(
+        self,
+        drone_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        with self._get_client() as client:
+            response = client.get(APIRoutes.latest_telemetry(drone_id))
+            response.raise_for_status()
+            return response.json()
+
+    async def get_current_user_async(self) -> Dict[str, Any]:
         async with self._get_async_client() as client:
-            resp = await client.get(APIRoutes.DRONES)
-            resp.raise_for_status()
-            return [DroneTelemetry.model_validate(item) for item in resp.json()]
+            response = await client.get(APIRoutes.CURRENT_USER)
+            response.raise_for_status()
+            return response.json()
 
-    def get_rescue_teams(self) -> List[RescueSquad]:
-        with self._get_client() as client:
-            resp = client.get(APIRoutes.TEAMS)
-            resp.raise_for_status()
-            return [RescueSquad.model_validate(item) for item in resp.json()]
-
-    def dispatch_order(self, order_payload: Dict[str, Any]) -> Dict[str, Any]:
-        with self._get_client() as client:
-            resp = client.post(APIRoutes.DISPATCH_ORDER, json=order_payload)
-            resp.raise_for_status()
-            return resp.json()
-
-    # -------------------------------------------------------------------------
-    # Intel & Notifications
-    # -------------------------------------------------------------------------
-    def get_stream_sources(self) -> List[StreamSource]:
-        with self._get_client() as client:
-            resp = client.get(APIRoutes.SOURCES)
-            resp.raise_for_status()
-            return [StreamSource.model_validate(item) for item in resp.json()]
-
-    def get_notifications(self) -> List[NotificationAlert]:
-        with self._get_client() as client:
-            resp = client.get(APIRoutes.NOTIFICATIONS)
-            resp.raise_for_status()
-            return [NotificationAlert.model_validate(item) for item in resp.json()]
-
-    def acknowledge_notification(self, notification_id: str) -> bool:
-        route = APIRoutes.get_ack_notification_route(notification_id)
-        with self._get_client() as client:
-            resp = client.post(route)
-            return resp.status_code in [200, 204]
-
-    # -------------------------------------------------------------------------
-    # Command & Incidents
-    # -------------------------------------------------------------------------
-    def get_incidents(self) -> List[IncidentTicket]:
-        with self._get_client() as client:
-            resp = client.get(APIRoutes.INCIDENTS)
-            resp.raise_for_status()
-            return [IncidentTicket.model_validate(item) for item in resp.json()]
-
-    async def get_incidents_async(self) -> List[IncidentTicket]:
+    async def submit_telemetry_async(
+        self,
+        payload: Dict[str, Any],
+    ) -> Dict[str, Any]:
         async with self._get_async_client() as client:
-            resp = await client.get(APIRoutes.INCIDENTS)
-            resp.raise_for_status()
-            return [IncidentTicket.model_validate(item) for item in resp.json()]
+            response = await client.post(APIRoutes.TELEMETRY_RECEIVE, json=payload)
+            response.raise_for_status()
+            return response.json()
 
-    def report_incident(self, incident: IncidentTicket) -> IncidentTicket:
-        with self._get_client() as client:
-            resp = client.post(APIRoutes.INCIDENTS, json=incident.to_dict())
-            resp.raise_for_status()
-            return IncidentTicket.model_validate(resp.json())
-
-    def export_sitrep(self) -> bytes:
-        """Download latest compiled SITREP summary/PDF from the backend."""
-        with self._get_client() as client:
-            resp = client.get(APIRoutes.SITREP)
-            resp.raise_for_status()
-            return resp.content
-
-    # -------------------------------------------------------------------------
-    # Logistics
-    # -------------------------------------------------------------------------
-    def get_inventory(self) -> List[InventoryItem]:
-        with self._get_client() as client:
-            resp = client.get(APIRoutes.INVENTORY)
-            resp.raise_for_status()
-            return [InventoryItem.model_validate(item) for item in resp.json()]
-
-    async def get_inventory_async(self) -> List[InventoryItem]:
+    async def get_latest_telemetry_async(
+        self,
+        drone_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
         async with self._get_async_client() as client:
-            resp = await client.get(APIRoutes.INVENTORY)
-            resp.raise_for_status()
-            return [InventoryItem.model_validate(item) for item in resp.json()]
+            response = await client.get(APIRoutes.latest_telemetry(drone_id))
+            response.raise_for_status()
+            return response.json()

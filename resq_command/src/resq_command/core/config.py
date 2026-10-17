@@ -29,9 +29,16 @@ class AppConfig(BaseSettings):
     cache_dir: Path = Field(default_factory=lambda: Path.home() / ".resq_command" / "cache")
 
     # Hardware & Telemetry Bindings
-    lora_serial_port: str = Field(default="/dev/cu.usbserial-110")
-    mavlink_udp_port: int = Field(default=14550)
-    enable_mock_simulator: bool = Field(default=True)
+    telemetry_udp_port: int = Field(default=14550)
+    enable_mock_simulator: bool = Field(default=False)
+    video_device_name: Optional[str] = Field(
+        default=None,
+        description="Exact OS name of the local HDMI capture device",
+    )
+    video_stream_uri: Optional[str] = Field(
+        default=None,
+        description="Local RTSP/HTTP URL exposed by the ground-station video receiver",
+    )
 
     # Window State & Geometry Defaults
     window_width: int = Field(default=1440)

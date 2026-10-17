@@ -1,6 +1,6 @@
 # ResQVision Scout
 
-`resq_scout` is the Flutter mobile application for field operators. It is the mobile client for the ResQVision system and is organized as a standard Flutter project.
+`resq_scout` is the Flutter mobile application for field operators and shared account/data features. Aircraft command transmission and 5.8 GHz receiver video are handled directly by the single `resq_command` ground station; Scout does not depend on cloud routes for those radio links.
 
 ## Layout
 
