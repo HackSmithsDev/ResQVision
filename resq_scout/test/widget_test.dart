@@ -25,7 +25,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          accessTokenProvider.overrideWith(_TestAccessTokenNotifier.new),
+          sessionProvider.overrideWith(_TestSessionNotifier.new),
           workspaceRecordsProvider('drones')
               .overrideWith((ref) async => <Map<String, dynamic>>[]),
         ],
@@ -140,7 +140,10 @@ void main() {
   });
 }
 
-class _TestAccessTokenNotifier extends AccessTokenNotifier {
+class _TestSessionNotifier extends SessionNotifier {
   @override
-  String? build() => 'test-token';
+  Future<SessionTokens?> build() async => const SessionTokens(
+    accessToken: 'test-access',
+    refreshToken: 'test-refresh',
+  );
 }

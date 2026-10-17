@@ -21,7 +21,7 @@ class ProfilePage extends ConsumerWidget {
           profile.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, _) => _ProfileState(
-              message: ref.watch(accessTokenProvider) == null
+              message: ref.watch(sessionProvider).asData?.value == null
                   ? 'Sign in to load your backend profile.'
                   : error.toString(),
               onRetry: () => ref.invalidate(backendProfileProvider),

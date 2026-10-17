@@ -48,7 +48,7 @@ class BackendCollectionPage extends ConsumerWidget {
                       collection: collection,
                       icon: icon,
                       requiresSignIn:
-                          ref.watch(accessTokenProvider) == null,
+                          ref.watch(sessionProvider).asData?.value == null,
                     )
                   : RefreshIndicator(
                       onRefresh: () => ref.refresh(

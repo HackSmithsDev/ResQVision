@@ -29,14 +29,12 @@ class _BackendAccessCardState extends ConsumerState<BackendAccessCard> {
       _error = null;
     });
     try {
-      final result = await ref.read(backendApiProvider).login(
+      await ref.read(sessionProvider.notifier).signIn(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-      ref
-          .read(accessTokenProvider.notifier)
-          .setToken(result['access_token'] as String);
       ref.invalidate(backendProfileProvider);
+      ref.invalidate(workspaceRecordsProvider);
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
     } finally {
@@ -46,19 +44,38 @@ class _BackendAccessCardState extends ConsumerState<BackendAccessCard> {
 
   @override
   Widget build(BuildContext context) {
-    final isSignedIn = ref.watch(accessTokenProvider) != null;
+    final session = ref.watch(sessionProvider);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: isSignedIn
+        child: session.isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : session.hasError
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Could not restore your saved session.'),
+                  const SizedBox(height: 8),
+                  Text(
+                    session.error.toString(),
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                  TextButton(
+                    onPressed: () => ref.invalidate(sessionProvider),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              )
+            : session.value != null
             ? ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.cloud_done_outlined),
                 title: const Text('Backend account connected'),
                 trailing: TextButton(
-                  onPressed: () {
-                    ref.read(accessTokenProvider.notifier).setToken(null);
+                  onPressed: () async {
+                    await ref.read(sessionProvider.notifier).signOut();
                     ref.invalidate(backendProfileProvider);
+                    ref.invalidate(workspaceRecordsProvider);
                   },
                   child: const Text('Sign out'),
                 ),
@@ -94,6 +111,11 @@ class _BackendAccessCardState extends ConsumerState<BackendAccessCard> {
                   FilledButton(
                     onPressed: _isSubmitting ? null : _signIn,
                     child: Text(_isSubmitting ? 'Connecting…' : 'Sign in'),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Your session is saved in secure device storage and renewed automatically.',
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 6),
                   Text(
