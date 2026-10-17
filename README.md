@@ -6,7 +6,7 @@ ResQVision is a modular drone response platform developed by HackSmiths. It brin
 
 | Folder | Responsibility |
 | --- | --- |
-| [`resq_scout/`](./resq_scout/README.md) | Flutter mobile app for field operators and shared account/data features. |
+| [`resq_scout/`](./resq_scout/README.md) | Flutter Android/iOS mobile app for field operators and shared account/data features. |
 | [`resq_command/`](./resq_command/README.md) | The single PySide6 desktop ground station for local telemetry and received video. |
 | [`resq_cloud/`](./resq_cloud/README.md) | FastAPI backend for shared identity, user data, telemetry sync, and AI model state. It does not relay radio commands or video. |
 | [`resq_ai/`](./resq_ai/README.md) | COCO dataset validation, aerial object-detector training/evaluation, image inference, and ONNX export for people, vehicles, and animals. |
@@ -16,7 +16,7 @@ ResQVision is a modular drone response platform developed by HackSmiths. It brin
 
 ```text
 Field operator
-  ├── resq_scout (Flutter mobile app) ── HTTPS ──┐
+  ├── resq_scout (Flutter Android/iOS app) ── HTTPS ──┐
   │                                               ▼
   │                                      resq_cloud (FastAPI)
   │                                       ├── PostgreSQL

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -15,11 +14,7 @@ const _sessionTokensKey = 'resq.session_tokens';
 const _deviceIdKey = 'resq.device_id';
 
 final secureStorageProvider = Provider<FlutterSecureStorage>(
-  (ref) => defaultTargetPlatform == TargetPlatform.macOS
-      ? const FlutterSecureStorage(
-          mOptions: MacOsOptions(usesDataProtectionKeychain: false),
-        )
-      : const FlutterSecureStorage(),
+  (ref) => const FlutterSecureStorage(),
 );
 
 final sessionTokenStorageProvider = Provider<SessionTokenStorage>(
