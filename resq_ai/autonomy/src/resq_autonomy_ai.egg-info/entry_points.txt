@@ -1,2 +1,0 @@
-[console_scripts]
-autonomy = resq_autonomy_ai.cli:main

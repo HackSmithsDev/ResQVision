@@ -5,7 +5,16 @@
 /data/raw/annotations/*.json
 .venv/
 __pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 *.py[cod]
+*.egg-info/
+build/
+dist/
+.coverage
+htmlcov/
+*.log
 
 /artifacts/*
 !/artifacts/.gitkeep

@@ -1,2 +1,0 @@
-[console_scripts]
-resq-command = resq_command.main:main

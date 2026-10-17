@@ -1,0 +1,33 @@
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+
+# Python build and test output
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.coverage
+htmlcov/
+
+# Local training and exported model data
+/data/raw/*
+!/data/raw/.gitkeep
+/artifacts/*
+!/artifacts/.gitkeep
+/checkpoints/*
+!/checkpoints/.gitkeep
+*.onnx
+*.pth
+*.pt
+*.tflite

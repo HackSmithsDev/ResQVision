@@ -12,6 +12,11 @@ ENV/
 # Environment
 # =========================
 .env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
 
 # =========================
 # Database
@@ -23,6 +28,14 @@ ENV/
 # Logs / AI / Cache
 # =========================
 *.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+dist/
 .google_auth_cache/
 vector_store/
 nltk_data/

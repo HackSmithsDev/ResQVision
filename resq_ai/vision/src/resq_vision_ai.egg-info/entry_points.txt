@@ -1,2 +1,0 @@
-[console_scripts]
-vision = resq_vision_ai.cli:main
