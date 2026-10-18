@@ -79,3 +79,5 @@ resq_ai/**/checkpoints/
 # Node (if any)
 # =========================
 node_modules/
+
+_DOCS/
