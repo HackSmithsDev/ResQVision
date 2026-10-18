@@ -1,3 +1,4 @@
+from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -8,6 +9,28 @@ from app.db.models.intelligence import AIModel
 from app.schemas.ai import AIModelInfo
 
 router = APIRouter()
+MODEL_ROOT = Path(__file__).resolve().parents[3] / "models"
+
+
+def discover_checkpoints(model_root: Path = MODEL_ROOT) -> list[dict[str, str | int]]:
+    if not model_root.is_dir():
+        return []
+    return [
+        {
+            "category": checkpoint.relative_to(model_root).parts[0],
+            "name": checkpoint.stem,
+            "path": checkpoint.relative_to(model_root).as_posix(),
+            "size_bytes": checkpoint.stat().st_size,
+        }
+        for checkpoint in sorted(model_root.rglob("*.pth"))
+        if checkpoint.is_file()
+    ]
+
+
+@router.get("/checkpoints")
+async def list_checkpoints():
+    """List trained checkpoint files present in the backend model directory."""
+    return discover_checkpoints()
 
 
 # ==========================================

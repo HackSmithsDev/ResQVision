@@ -7,7 +7,7 @@ from app.db.session import get_db
 from app.db.models.account import User, AdminLog
 from app.schemas.admin import AdminUserResponse, MessageResponse
 from app.core.security import get_current_admin
-from app.services.email.sender import send_approval_result_email
+from app.workers.tasks.email.sender import send_approval_result_email
 from app.utils.helper import generate_unique_id
 
 router = APIRouter()

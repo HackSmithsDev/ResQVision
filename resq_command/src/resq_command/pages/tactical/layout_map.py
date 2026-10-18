@@ -116,7 +116,7 @@ class LayoutMapPage(QWidget):
         root_layout.setContentsMargins(20, 20, 20, 20)
         root_layout.setSpacing(14)
 
-        self.status_label = QLabel("No local telemetry with map coordinates received.")
+        self.status_label = QLabel("No telemetry with map coordinates received.")
         self.status_label.setProperty("variant", "header")
         root_layout.addWidget(self.status_label)
 

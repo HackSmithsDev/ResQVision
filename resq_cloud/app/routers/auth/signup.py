@@ -6,7 +6,7 @@ from app.db.session import get_db
 from app.db.models.account import User
 from app.schemas.auth import SignupRequest, SignupResponse
 from app.core.security import get_password_hash
-from app.services.email.sender import send_welcome_email, send_new_user_request_email
+from app.workers.tasks.email.sender import send_welcome_email, send_new_user_request_email
 from app.utils.helper import generate_unique_id
 
 router = APIRouter()

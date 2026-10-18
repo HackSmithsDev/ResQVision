@@ -7,7 +7,7 @@ from app.db.session import get_db
 from app.db.models.account import User
 from app.schemas.auth import ForgotPasswordRequest, VerifyOtpRequest, MessageResponse
 from app.utils.redis import set_otp, get_otp
-from app.services.email.sender import send_otp_email
+from app.workers.tasks.email.sender import send_otp_email
 
 router = APIRouter()
 

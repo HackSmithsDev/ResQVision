@@ -6,7 +6,7 @@ from app.db.models.account import User
 from app.schemas.users import ChangePasswordRequest, MessageResponse
 from app.core.security import get_current_user, verify_password, get_password_hash
 from app.utils.redis import delete_refresh_token
-from app.services.email.sender import send_delete_account_email
+from app.workers.tasks.email.sender import send_delete_account_email
 
 router = APIRouter()
 

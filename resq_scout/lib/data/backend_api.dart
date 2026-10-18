@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 
 const backendBaseUrl = String.fromEnvironment(
   'RESQ_API_BASE_URL',
-  defaultValue: 'http://127.0.0.1:8000',
+  defaultValue: 'http://127.0.0.1:8084',
 );
 
 const _sessionTokensKey = 'resq.session_tokens';

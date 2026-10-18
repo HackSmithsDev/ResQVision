@@ -8,7 +8,6 @@ from app.db.models.account import User
 from app.db.models.intelligence import AIModel, AIRequest
 from app.schemas.ai import IdentifyRequest, IdentifyResponse
 from app.core.security import get_current_user
-from app.services.ai.identify import identify as run_identification
 from app.utils.helper import generate_unique_id
 from app.utils.redis import set_active_ai_model, revoke_active_ai_model
 
@@ -62,32 +61,13 @@ async def identify(
     )
 
     try:
-        # 4. Execute identification service
-        result = await run_identification(
-            input_data={
-                "data": data.data,
-                "level": data.level
-            },
-            application=data.application,
-            preferred_provider=data.preferred_provider,
-            enhance_with_llm=data.enhance
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "AI inference is unavailable until a trained checkpoint and inference "
+                "runtime are configured on the backend."
+            ),
         )
-
-        # 5. Update DB record on success
-        ai_request.result = result.get("extra", {}).get("local_result", {})
-        ai_request.enhanced_result = result.get("content")
-        ai_request.status = "completed"
-        ai_request.completed_at = datetime.now(timezone.utc)
-        await db.commit()
-
-        return {
-            "success": True,
-            "application": data.application,
-            "level": data.level,
-            "result": result.get("extra", {}).get("local_result", {}),
-            "enhanced": result.get("content"),
-            "provider": result.get("provider")
-        }
 
     except HTTPException as exc:
         # 6. Mark DB request record as failed

@@ -10,9 +10,9 @@
 | `app/db/` | SQLAlchemy base, async database session, ORM models, and seed commands. |
 | `app/routers/` | HTTP routes grouped by auth, users, admin, AI, connection, owner-scoped workspace records, and shared telemetry synchronization. No routes proxy commands or receiver video. |
 | `app/schemas/` | Pydantic request and response schemas used by the routes. |
-| `app/services/` | Application services; email notifications are enqueued here for Celery, while AI identification currently returns HTTP 501 until its provider/inference contract is implemented. |
 | `app/utils/` | Shared integrations such as Redis and general helpers. |
 | `app/workers/` | Celery application, task definitions, email transport, and beat schedule (currently no periodic jobs). |
+| `models/` | Trained `.pth` checkpoints, discovered recursively by the backend model registry. |
 | `alembic/` | Database migration environment and revision history. |
 | `main.py` | Local/Uvicorn entry point. |
 | `Dockerfile` | Production API image definition; builds with `resq_cloud` as its context. |
@@ -21,7 +21,7 @@
 
 Copy `.env.example` to `.env` and supply real values for `SECRET_KEY`, `DATABASE_URL`, and `REDIS_URL`. Configure mail and AI provider credentials only when those integrations are enabled. Never commit `.env`.
 
-The API uses `HOST`, `PORT`, `DEBUG`, and `WORKERS_COUNT` for its server process. Container defaults bind to `0.0.0.0:8000`, disable debug reload, and use one worker. Increase `WORKERS_COUNT` only after considering available CPU/memory and any database connection limits.
+The API uses `HOST`, `PORT`, `DEBUG`, and `WORKERS_COUNT` for its server process. Container defaults bind to `0.0.0.0:8084`, disable debug reload, and use one worker. Increase `WORKERS_COUNT` only after considering available CPU/memory and any database connection limits.
 
 ## Docker and Cloudflare Tunnel
 
@@ -34,11 +34,11 @@ cp .env.example .env
 docker compose up --build
 ```
 
-In Cloudflare Zero Trust, configure the tunnel's public hostname to use the internal service URL `http://api:8000`. The `cloudflared` container is intentionally separate from the API image: it has its own lifecycle and receives the tunnel token from the root `.env` at runtime. The API image does not contain the token or `.env`.
+In Cloudflare Zero Trust, configure the tunnel's public hostname to use the internal service URL `http://api:8084`. The `cloudflared` container is intentionally separate from the API image: it has its own lifecycle and receives the tunnel token from the root `.env` at runtime. The API image does not contain the token or `.env`.
 
-The `worker` service runs `celery -A app.workers.celery_app:celery_app worker`. Signup, password-reset, account, login-alert, and approval emails are sent through the `resq_cloud.email.send` Celery task. The worker and API both need the same Redis and mail configuration. There are no cloud command or video-relay routes; radio control and receiver video stay local to the ground station.
+The `worker` service runs `celery -A app.workers.celery_app:celery_app worker`. Signup, password-reset, account, login-alert, and approval emails are queued through the `resq_cloud.email.send` Celery task. The worker and API both need the same Redis and mail configuration. There are no cloud command or video-relay routes; radio control and receiver video stay local to the ground station. AI identification reports unavailable until a real checkpoint and inference runtime are configured.
 
-For API-only local testing, run `docker compose up --build api`; the API is available at `http://127.0.0.1:8000` and its OpenAPI UI at `/docs`.
+For API-only local testing, run `docker compose up --build api`; the API is available at `http://127.0.0.1:8084` and its OpenAPI UI at `http://127.0.0.1:8084/docs`. The host port is bound to loopback for local apps such as `resq_command`.
 
 ## Database
 

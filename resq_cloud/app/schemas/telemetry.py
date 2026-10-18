@@ -13,6 +13,10 @@ class TelemetryData(BaseModel):
     rain: Optional[bool] = None
     lidar: Optional[float] = None
     ultrasonic: Optional[float] = None
+    callsign: Optional[str] = None
+    x: Optional[float] = None
+    y: Optional[float] = None
+    status: Optional[str] = None
     flight_mode: Optional[str] = None
     signal: Optional[float] = None
     timestamp: Optional[datetime] = None

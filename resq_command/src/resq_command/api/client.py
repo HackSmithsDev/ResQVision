@@ -82,6 +82,15 @@ class ResQVisionAPIClient:
             response.raise_for_status()
             return response.json()
 
+    def get_simulated_telemetry(self) -> Dict[str, Any]:
+        with self._get_client() as client:
+            response = client.get(APIRoutes.TELEMETRY_SIMULATED)
+            response.raise_for_status()
+            payload = response.json()
+        if not isinstance(payload, dict) or not isinstance(payload.get("drone_id"), str):
+            raise ValueError("Backend simulation response has an invalid format.")
+        return payload
+
     def get_latest_telemetry(
         self,
         drone_id: Optional[str] = None,
@@ -102,6 +111,38 @@ class ResQVisionAPIClient:
         ):
             raise ValueError("Backend workspace response has an invalid format.")
         return records
+
+    def create_workspace_record(
+        self,
+        collection: str,
+        data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        with self._get_client() as client:
+            response = client.post(
+                APIRoutes.workspace_collection(collection),
+                json={"data": data},
+            )
+            response.raise_for_status()
+            return response.json()
+
+    def update_workspace_record(
+        self,
+        collection: str,
+        record_id: str,
+        data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        with self._get_client() as client:
+            response = client.put(
+                APIRoutes.workspace_record(collection, record_id),
+                json={"data": data},
+            )
+            response.raise_for_status()
+            return response.json()
+
+    def delete_workspace_record(self, collection: str, record_id: str) -> None:
+        with self._get_client() as client:
+            response = client.delete(APIRoutes.workspace_record(collection, record_id))
+            response.raise_for_status()
 
     async def get_current_user_async(self) -> Dict[str, Any]:
         async with self._get_async_client() as client:

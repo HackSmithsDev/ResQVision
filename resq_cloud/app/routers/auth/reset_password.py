@@ -7,7 +7,7 @@ from app.db.models.account import User
 from app.schemas.auth import ResetPasswordRequest, MessageResponse
 from app.core.security import get_password_hash
 from app.utils.redis import get_otp, delete_otp
-from app.services.email.sender import send_reset_success_email
+from app.workers.tasks.email.sender import send_reset_success_email
 
 router = APIRouter()
 

@@ -25,3 +25,23 @@ def test_workspace_page_has_password_input(qapp) -> None:
     assert password_input.echoMode() == QLineEdit.EchoMode.Password
     page.close()
     page.deleteLater()
+
+
+def test_workspace_page_renders_backend_record_payload(qapp) -> None:
+    page = WorkspaceRecordsPage("drones", "Fleet records")
+    page._render_records(
+        [
+            {
+                "id": "backend-record-7",
+                "data": {"callsign": "Field unit 7", "battery": 81},
+            }
+        ]
+    )
+
+    assert page.records_list.count() == 1
+    assert page.records_list.item(0).text() == "backend-record-7"
+    page.records_list.setCurrentRow(0)
+    assert '"callsign": "Field unit 7"' in page.record_details.toPlainText()
+    assert page.edit_button.isEnabled()
+    page.close()
+    page.deleteLater()

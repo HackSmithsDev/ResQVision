@@ -9,10 +9,15 @@ class APIRoutes:
     CURRENT_USER: Final[str] = "/users/me"
     TELEMETRY_RECEIVE: Final[str] = "/telemetry/receive"
     TELEMETRY_LATEST: Final[str] = "/telemetry/latest"
+    TELEMETRY_SIMULATED: Final[str] = "/telemetry/simulated"
 
     @classmethod
     def workspace_collection(cls, collection: str) -> str:
         return f"/workspace/{quote(collection, safe='')}"
+
+    @classmethod
+    def workspace_record(cls, collection: str, record_id: str) -> str:
+        return f"{cls.workspace_collection(collection)}/{quote(record_id, safe='')}"
 
     @classmethod
     def latest_telemetry(cls, drone_id: str | None = None) -> str:

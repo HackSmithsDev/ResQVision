@@ -63,6 +63,27 @@ def test_latest_telemetry_path_encodes_drone_identifier() -> None:
     assert APIRoutes.latest_telemetry("drone/one") == "/telemetry/latest/drone%2Fone"
 
 
+def test_simulated_telemetry_uses_backend_route(monkeypatch) -> None:
+    requests = []
+    client = ResQVisionAPIClient()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, json={"drone_id": "SIM-UAV-01"})
+
+    monkeypatch.setattr(
+        client,
+        "_get_client",
+        lambda: httpx.Client(
+            base_url=client.base_url,
+            transport=httpx.MockTransport(handler),
+        ),
+    )
+
+    assert client.get_simulated_telemetry()["drone_id"] == "SIM-UAV-01"
+    assert requests[0].url.path == "/telemetry/simulated"
+
+
 def test_workspace_collection_path_is_encoded_and_authenticated(monkeypatch) -> None:
     requests = []
     client = ResQVisionAPIClient(token="operator-token")
@@ -97,3 +118,32 @@ def test_workspace_collection_path_is_encoded_and_authenticated(monkeypatch) -> 
     assert authorization.startswith("Bearer ")
     assert authorization.endswith("-token")
     assert records[0]["data"] == {"sensor": "field-unit"}
+
+
+def test_workspace_create_uses_backend_collection_route(monkeypatch) -> None:
+    requests = []
+    client = ResQVisionAPIClient(token="operator-token")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(
+            201,
+            json={"id": "record-1", "data": {"name": "Field unit"}},
+        )
+
+    monkeypatch.setattr(
+        client,
+        "_get_client",
+        lambda: httpx.Client(
+            base_url=client.base_url,
+            headers=client.headers,
+            transport=httpx.MockTransport(handler),
+        ),
+    )
+
+    record = client.create_workspace_record("drones", {"name": "Field unit"})
+
+    assert record["id"] == "record-1"
+    assert requests[0].method == "POST"
+    assert requests[0].url.path == "/workspace/drones"
+    assert requests[0].read() == b'{"data":{"name":"Field unit"}}'

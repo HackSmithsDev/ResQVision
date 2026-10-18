@@ -10,7 +10,7 @@ from app.core.security import verify_password, create_access_token, create_refre
 from app.utils.helper import generate_unique_id
 from app.utils.redis import set_refresh_token
 from app.core.config import settings
-from app.services.email.sender import send_login_alert
+from app.workers.tasks.email.sender import send_login_alert
 
 router = APIRouter()
 

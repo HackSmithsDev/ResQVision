@@ -60,3 +60,34 @@ class AIScreeningBar(QFrame):
             font-size: 11px;
         """)
         layout.addWidget(self.level_badge)
+
+        if self.event_bus:
+            self.event_bus.telemetry_updated.connect(self.update_telemetry)
+
+    def update_telemetry(self, data: dict) -> None:
+        identity = data.get("callsign") or data.get("drone_id") or "TRACK"
+        details = [str(data.get("flight_mode") or data.get("status") or "LIVE")]
+        if data.get("altitude") is not None:
+            details.append(f"ALT {data['altitude']:.1f} m")
+        if data.get("battery") is not None:
+            details.append(f"BAT {data['battery']:.0f}%")
+        self.status_readout.setText(f"{identity}  |  {'  |  '.join(details)}")
+
+        battery = data.get("battery")
+        if isinstance(battery, (int, float)):
+            level_color, level_background = (
+                (TacticalPalette.LEVEL_RED, TacticalPalette.LEVEL_RED_BG)
+                if battery <= 20
+                else (TacticalPalette.LEVEL_GREEN, TacticalPalette.LEVEL_GREEN_BG)
+            )
+            label = f"BATTERY {battery:.0f}%"
+        else:
+            level_color = TacticalPalette.TEXT_SECONDARY
+            level_background = TacticalPalette.BG_PANEL
+            label = str(data.get("flight_mode") or data.get("status") or "LIVE DATA").upper()
+        self.level_badge.setText(label)
+        self.level_badge.setStyleSheet(
+            f"background-color: {level_background}; color: {level_color}; "
+            f"border: 1px solid {level_color}; padding: 5px 12px; "
+            "border-radius: 14px; font-weight: 800; font-size: 11px;"
+        )

@@ -25,7 +25,7 @@ class QuickTelemetryBar(QFrame):
         self.battery = QLabel("Battery: —")
         self.altitude = QLabel("Altitude: —")
         self.speed = QLabel("Ground speed: —")
-        self.status = QLabel("No local telemetry received")
+        self.status = QLabel("No telemetry received")
         self.status.setWordWrap(True)
         for label in (self.battery, self.altitude, self.speed, self.status):
             layout.addWidget(label)
@@ -33,10 +33,11 @@ class QuickTelemetryBar(QFrame):
         layout.addStretch()
 
     def update_telemetry(self, data: dict):
-        self.status.setText("Receiving local telemetry")
+        self.status.setText("Receiving telemetry")
         if data.get("battery") is not None:
             self.battery.setText(f"Battery: {data['battery']}%")
         if data.get("altitude") is not None:
             self.altitude.setText(f"Altitude: {data['altitude']} m")
-        if data.get("ground_speed") is not None:
-            self.speed.setText(f"Ground speed: {data['ground_speed']} m/s")
+        speed = data.get("ground_speed", data.get("speed"))
+        if speed is not None:
+            self.speed.setText(f"Ground speed: {speed} m/s")

@@ -13,8 +13,7 @@ if str(SRC_DIR) not in sys.path:
 
 from PySide6.QtWidgets import QApplication
 from resq_command import AppShell, EventBus
-from resq_command.api.mock_client import MockTelemetryClient
-from resq_command.api.telemetry_client import UDPTelemetryClient
+from resq_command.api.telemetry_client import BackendSimulationClient, UDPTelemetryClient
 from resq_command.core.config import settings
 from resq_command.style.theme_manager import ThemeManager
 
@@ -44,7 +43,7 @@ def main():
             telemetry_client.stop()
 
         if settings.enable_mock_simulator:
-            telemetry_client = MockTelemetryClient(event_bus)
+            telemetry_client = BackendSimulationClient(event_bus)
         else:
             telemetry_client = UDPTelemetryClient(
                 host="0.0.0.0",

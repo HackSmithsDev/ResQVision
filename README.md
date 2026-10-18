@@ -1,61 +1,144 @@
 # ResQVision
 
-ResQVision is a modular drone response platform developed by HackSmiths. It brings together a mobile field app, a desktop ground station, a shared cloud backend, AI model-training/export pipelines, and flight-controller firmware.
+# ResQVision
 
-## Repository modules
+ResQVision is a modular search-and-rescue drone response project. It brings
+together a mobile field application, a desktop ground station, a shared cloud
+API, machine-learning development pipelines, and flight-controller integration
+documentation. Each module has its own runtime and setup; the repository root is
+not a single deployable application.
 
-| Folder | Responsibility |
-| --- | --- |
-| [`resq_scout/`](./resq_scout/README.md) | Flutter Android/iOS mobile app for field operators and shared account/data features. |
-| [`resq_command/`](./resq_command/README.md) | The single PySide6 desktop ground station for local telemetry and received video. |
-| [`resq_cloud/`](./resq_cloud/README.md) | FastAPI backend for shared identity, user data, telemetry sync, and AI model state. It does not relay radio commands or video. |
-| [`resq_ai/`](./resq_ai/README.md) | COCO dataset validation, aerial object-detector training/evaluation, image inference, and ONNX export for people, vehicles, and animals. |
-| [`resq_flight/`](./resq_flight/README.md) | Flight-controller integration notes; the FC722 runs Betaflight firmware. |
+## Project Modules
 
-## How the pieces connect
+| Module | Purpose | Status and boundary |
+| --- | --- | --- |
+| [`resq_scout/`](./resq_scout/README.md) | Flutter mobile app for field operators, accounts, and shared operational records. | Android and iOS targets. Uses the cloud API for shared data. |
+| [`resq_command/`](./resq_command/README.md) | The single PySide6 desktop ground station. | Receives local JSON/UDP telemetry and local capture-card video; reads and edits shared records through the cloud API. |
+| [`resq_cloud/`](./resq_cloud/README.md) | FastAPI backend for accounts, workspaces, telemetry synchronization, AI metadata, and queued email. | PostgreSQL stores persistent records; Redis supports transient state and Celery. It does not relay radio control or video. |
+| [`resq_ai/vision/`](./resq_ai/vision/README.md) | Aerial object-detection data validation, training, evaluation, prediction, and ONNX export. | Standalone Python project; model artifacts are not automatically deployed to the API or apps. |
+| [`resq_ai/autonomy/`](./resq_ai/autonomy/README.md) | Flight-safety and telemetry-anomaly model experiments, evaluation, and edge export. | Standalone prototype; it is not integrated with the FC722 or `resq_command`. |
+| [`resq_flight/`](./resq_flight/README.md) | FC722 hardware and Betaflight integration notes. | Documentation only; this repository does not build replacement flight firmware. |
+
+## System Boundaries
 
 ```text
-Field operator
-  ├── resq_scout (Flutter Android/iOS app) ── HTTPS ──┐
-  │                                               ▼
-  │                                      resq_cloud (FastAPI)
-  │                                       ├── PostgreSQL
-  │                                       ├── Redis
-  │                                       ├── Celery email worker
-  │                                       └── Cloudflare Tunnel (optional ingress)
-  │
-  └── resq_command (single desktop ground station)
-        ├── local JSON/UDP adapter ──► telemetry input
-        └── 5.8 GHz video receiver ──HDMI──► capture card ──► local video input
+resq_scout (mobile) ── HTTPS ──┐
+                                                                                           v
+resq_command (desktop) ── local API ── resq_cloud (FastAPI)
+             │                                 ├── PostgreSQL
+             ├── local JSON/UDP telemetry      ├── Redis
+             └── HDMI capture card/video       ├── Celery email worker
+                                                                                                                   └── Ollama (optional tactical AI)
 
-Operator's ELRS 2.4 GHz remote ──radio──► ELRS receiver on FC722
-      FC722 runs Betaflight; radio control stays on this direct link.
+ELRS handset ── direct radio link ── ELRS receiver ── FC722 (Betaflight)
 ```
 
-The local telemetry adapter's JSON/UDP format is an integration boundary, not native Betaflight MSP support. `resq_command` does not originate or relay flight commands; shared cloud APIs remain available for authentication and telemetry synchronization only.
+`resq_command` is the only command desktop application. When it and the backend
+run on the same computer, Command uses the backend's loopback address for the
+fastest local API path. It does not host a second backend or proxy aircraft
+commands. The ELRS handset talks directly to the receiver on the FC722. Video
+from the 5.8 GHz receiver remains local through HDMI and a capture card.
 
-`resq_ai` is a standalone aerial object-detection development workflow. It replaces the copied face-embedding code and does not perform face recognition. Its trained/exported model artifacts are not automatically loaded by the cloud API; model integration is a separate deployment step.
+The local telemetry adapter currently accepts JSON over UDP; native Betaflight
+MSP integration is not implemented. Until `resq_flight` integration is ready,
+Command can consume simulated telemetry generated by the backend. Demo values
+are not embedded in the Command UI. Operational workspace screens render and
+modify records returned by the backend, not frontend-owned sample records.
 
-## Run the backend with Cloudflare Tunnel
+The AI training workspaces and the cloud model registry are separate today.
+`resq_cloud/models/` is the backend checkpoint directory and recursively lists
+real `.pth` files at `/ai/checkpoints`; an empty category is normal before
+weights are trained and installed. Listing checkpoints does not imply that an
+inference runtime is configured. AI identification remains unavailable until a
+real checkpoint and inference implementation are connected.
 
-The API container listens on `0.0.0.0:8000`. The `cloudflared` container joins the same Compose network and reaches it at `http://api:8000`. Configure the tunnel's public hostname/origin in Cloudflare Zero Trust to point to that URL. Compose also starts a Celery worker for queued emails. The tunnel is only for shared cloud features; command transmission and received video stay on the ground station and are not routed through the API.
+## Backend Quick Start
 
-1. Copy `resq_cloud/.env.example` to `resq_cloud/.env` and replace the required database, Redis, and secret values.
-2. Copy the root `.env.example` to `.env` and set `CLOUDFLARE_TUNNEL_TOKEN`.
-3. Start both services from the repository root:
+Prerequisites: Docker Compose, a PostgreSQL database, and a Redis-compatible
+broker reachable by the API and Celery worker. The supplied Compose file also
+starts Ollama and Cloudflare Tunnel.
 
-   ```sh
-   docker compose up --build
-   ```
+From the repository root, create both environment files and replace the example
+values with real local credentials:
 
-The API is also mapped to `127.0.0.1:8000` for local development. The tunnel token and backend secrets are supplied at runtime and are not included in the image. To run only the API, use `docker compose up --build api`.
+```sh
+cp .env.example .env
+cp resq_cloud/.env.example resq_cloud/.env
+```
 
-See [`resq_cloud/README.md`](./resq_cloud/README.md) for backend configuration and tunnel details.
+Set `CLOUDFLARE_TUNNEL_TOKEN` in the root `.env`. Set `SECRET_KEY`,
+`DATABASE_URL`, and `REDIS_URL` in `resq_cloud/.env`. Configure mail credentials
+when email delivery is needed. Do not commit either `.env` file.
 
-## Development notes
+Start the local stack:
 
-- Keep service-specific code and dependencies inside their module folders.
-- Run cloud and AI tests from the repository root with `pytest`; run the Command tests from `resq_command/` with `pytest`.
-- Do not commit `.env` files, credentials, private imagery, training datasets, model checkpoints, or generated model binaries.
-- The AI detector expects separately organized train and validation splits with COCO-format bounding-box annotations; see [`resq_ai/README.md`](./resq_ai/README.md) before preparing data.
-- Hardware interfaces and flight behavior must be tested safely on a bench before any flight.
+```sh
+docker compose up --build
+```
+
+The API is available at `http://127.0.0.1:8084`; its OpenAPI UI is at
+`http://127.0.0.1:8084/docs`. Inside the Compose network, Cloudflare Tunnel
+connects to `http://api:8084`. The tunnel is optional for same-host development;
+to run the API service alone after Compose environment interpolation is set up,
+use `docker compose up --build api`.
+
+For the host-based Command app, the default API URL is
+`http://127.0.0.1:8084`. Set `RESQ_API_BASE_URL` to another backend origin only
+when the backend is hosted elsewhere. Set `RESQ_ENABLE_MOCK_SIMULATOR=true` to
+poll the backend-generated demo telemetry endpoint. Otherwise Command listens
+for local UDP telemetry on the configured receiver port.
+
+## Development and Tests
+
+Python projects require Python 3.10 or newer. Keep each project in its own
+virtual environment because their dependency sets and ML runtimes differ.
+
+Run cloud and AI Python tests from the repository root:
+
+```sh
+python -m pip install -r resq_cloud/requirements.txt
+python -m pip install -e "resq_ai/vision[dev]"
+python -m pip install -e "resq_ai/autonomy[dev]"
+pytest
+```
+
+The root `pytest.ini` discovers Cloud, Vision, and Autonomy tests. Command has
+its own environment and test suite:
+
+```sh
+cd resq_command
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+pytest
+```
+
+Scout requires the Flutter SDK. From `resq_scout/`, run:
+
+```sh
+flutter pub get
+flutter analyze
+flutter test
+flutter devices
+flutter run -d <android-device-id>
+```
+
+For iOS, choose an available iOS simulator or device ID. Configure Scout's API
+origin using `--dart-define=RESQ_API_BASE_URL=<backend-origin>` when running or
+building it. See each module README for data formats, environment variables,
+hardware setup, and specialized workflows.
+
+## Data, Models, and Secrets
+
+- Do not commit `.env` files, credentials, signing keys, private imagery,
+      datasets, checkpoints, or generated model binaries.
+- Training datasets and exports are local inputs/outputs. Follow the AI module
+      READMEs for expected formats and configured paths.
+- Trained checkpoint files belong under `resq_cloud/models/<category>/<task>/`
+      and are ignored by Git. The empty `human/`, `trees/`, and `vehicles/`
+      directories are kept with `.gitkeep` placeholders until weights are added.
+- The checked-in Alembic history predates the current ResQVision schema. Inspect
+      the database and migration state before applying migrations to a deployed
+      database; see the warning in [`resq_cloud/README.md`](./resq_cloud/README.md).
+- Bench-test hardware changes with propellers removed. A successful build or
+      firmware flash is not flight certification.

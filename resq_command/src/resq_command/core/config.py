@@ -23,7 +23,7 @@ class AppConfig(BaseSettings):
     env: str = Field(default="development", description="development | staging | production")
     debug_mode: bool = Field(default=True, description="Enable verbose telemetry and UI debug logs")
     api_base_url: str = Field(
-        default="http://127.0.0.1:8000",
+        default="http://127.0.0.1:8084",
         description="Base URL for shared ResQVision backend APIs",
     )
 

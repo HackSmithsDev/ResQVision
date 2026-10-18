@@ -6,11 +6,40 @@ Ingests JSON datagrams from a local telemetry adapter and emits them on the Even
 import json
 import logging
 import socket
+import time
 from json import JSONDecodeError
 
 from PySide6.QtCore import QThread, Signal
+from resq_command.api.client import ResQVisionAPIClient
 
 logger = logging.getLogger(__name__)
+
+
+class BackendSimulationClient(QThread):
+    """Poll backend-generated demo telemetry and publish it to the UI."""
+
+    error_occurred = Signal(str)
+
+    def __init__(self, event_bus=None, parent=None):
+        super().__init__(parent)
+        self.event_bus = event_bus
+        self.is_running = False
+        self.api_client = ResQVisionAPIClient()
+
+    def run(self):
+        self.is_running = True
+        while self.is_running:
+            try:
+                packet = self.api_client.get_simulated_telemetry()
+                if self.event_bus:
+                    self.event_bus.telemetry_updated.emit(packet)
+            except Exception as exc:
+                self.error_occurred.emit(str(exc))
+            time.sleep(1)
+
+    def stop(self):
+        self.is_running = False
+        self.wait()
 
 
 class UDPTelemetryClient(QThread):

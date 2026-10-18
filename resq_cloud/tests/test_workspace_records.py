@@ -5,7 +5,8 @@ from fastapi import HTTPException
 
 from app.db.models.account import User
 from app.db.models.workspace import WorkspaceRecord
-from app.services import workspace
+from app.routers import workspace
+from app.schemas.workspace import WorkspaceRecordCreate
 
 
 @pytest.mark.asyncio
@@ -17,7 +18,7 @@ async def test_workspace_records_are_scoped_to_owner_and_collection() -> None:
     db = AsyncMock()
     db.execute.return_value = result
 
-    records = await workspace.list_records(db, user, "missions")
+    records = await workspace.list_workspace_records("missions", user, db)
 
     assert records == expected
     statement = str(db.execute.await_args.args[0])
@@ -30,7 +31,7 @@ async def test_unknown_workspace_collection_is_rejected() -> None:
     db = AsyncMock()
 
     with pytest.raises(HTTPException) as error:
-        await workspace.list_records(db, User(id="operator-1"), "not-a-collection")
+        await workspace.list_workspace_records("not-a-collection", User(id="operator-1"), db)
 
     assert error.value.status_code == 404
     db.execute.assert_not_awaited()
@@ -42,11 +43,11 @@ async def test_workspace_record_can_be_created_for_an_allowed_collection() -> No
     db = AsyncMock()
     db.add = MagicMock()
 
-    record = await workspace.create_record(
-        db,
-        user,
+    record = await workspace.create_workspace_record(
         "environmental-readings",
-        {"sensor": "field-unit", "value": 12},
+        WorkspaceRecordCreate(data={"sensor": "field-unit", "value": 12}),
+        user,
+        db,
     )
 
     assert record.owner_id == user.id

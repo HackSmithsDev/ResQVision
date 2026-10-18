@@ -1,5 +1,6 @@
 """Backend-backed collection view shared by Command operational pages."""
 
+import json
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -7,10 +8,14 @@ from PySide6.QtCore import QThread, Signal, Qt
 from PySide6.QtWidgets import (
     QFormLayout,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QPlainTextEdit,
     QPushButton,
-    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
@@ -30,6 +35,8 @@ class _RequestWorker(QThread):
         collection: str,
         email: str = "",
         password: str = "",
+        record_id: str = "",
+        data: Optional[dict[str, Any]] = None,
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
@@ -37,6 +44,8 @@ class _RequestWorker(QThread):
         self.collection = collection
         self.email = email
         self.password = password
+        self.record_id = record_id
+        self.data = data or {}
 
     def run(self) -> None:
         try:
@@ -47,6 +56,17 @@ class _RequestWorker(QThread):
                     device_id=f"resq-command-{uuid4()}",
                     device_info="ResQ Command",
                 )
+            elif self.operation == "create":
+                result = _api_client.create_workspace_record(self.collection, self.data)
+            elif self.operation == "update":
+                result = _api_client.update_workspace_record(
+                    self.collection,
+                    self.record_id,
+                    self.data,
+                )
+            elif self.operation == "delete":
+                _api_client.delete_workspace_record(self.collection, self.record_id)
+                result = None
             else:
                 result = _api_client.list_workspace_records(self.collection)
             self.completed.emit(result)
@@ -67,6 +87,7 @@ class WorkspaceRecordsPage(QWidget):
         self.collection = collection
         self._worker: Optional[_RequestWorker] = None
         self._load_after_login = False
+        self._reload_after_request = False
 
         root = QVBoxLayout(self)
         root.setContentsMargins(20, 20, 20, 20)
@@ -107,13 +128,25 @@ class WorkspaceRecordsPage(QWidget):
         self.state_label.setWordWrap(True)
         root.addWidget(self.state_label)
 
-        self.scroll = QScrollArea(self)
-        self.scroll.setWidgetResizable(True)
-        self.records_container = QWidget(self.scroll)
-        self.records_layout = QVBoxLayout(self.records_container)
-        self.records_layout.addStretch()
-        self.scroll.setWidget(self.records_container)
-        root.addWidget(self.scroll, stretch=1)
+        record_actions = QHBoxLayout()
+        self.create_button = QPushButton("NEW RECORD")
+        self.create_button.clicked.connect(self._create_record)
+        self.edit_button = QPushButton("EDIT")
+        self.edit_button.clicked.connect(self._edit_record)
+        self.delete_button = QPushButton("DELETE")
+        self.delete_button.clicked.connect(self._delete_record)
+        record_actions.addWidget(self.create_button)
+        record_actions.addWidget(self.edit_button)
+        record_actions.addWidget(self.delete_button)
+        record_actions.addStretch()
+        root.addLayout(record_actions)
+
+        self.records_list = QListWidget(self)
+        self.records_list.currentItemChanged.connect(self._show_record)
+        self.record_details = QPlainTextEdit(self)
+        self.record_details.setReadOnly(True)
+        root.addWidget(self.records_list, stretch=1)
+        root.addWidget(self.record_details, stretch=1)
         self._update_session_controls()
         if _api_client.headers.get("Authorization"):
             self._load()
@@ -145,6 +178,73 @@ class WorkspaceRecordsPage(QWidget):
             "Loading backend records…",
         )
 
+    def _create_record(self) -> None:
+        self._edit_record_data("create", "{}")
+
+    def _edit_record(self) -> None:
+        item = self.records_list.currentItem()
+        if item is None:
+            return
+        record = item.data(Qt.ItemDataRole.UserRole)
+        self._edit_record_data("update", json.dumps(record["data"], indent=2), record["id"])
+
+    def _edit_record_data(
+        self,
+        operation: str,
+        initial_value: str,
+        record_id: str = "",
+    ) -> None:
+        value, accepted = QInputDialog.getMultiLineText(
+            self,
+            "Workspace record",
+            "Record data (JSON object)",
+            initial_value,
+        )
+        if not accepted:
+            return
+        try:
+            data = json.loads(value)
+        except json.JSONDecodeError as exc:
+            self.state_label.setText(f"Invalid JSON: {exc.msg}")
+            return
+        if not isinstance(data, dict):
+            self.state_label.setText("Record data must be a JSON object.")
+            return
+        self._reload_after_request = True
+        self._start_request(
+            _RequestWorker(
+                operation,
+                self.collection,
+                record_id=record_id,
+                data=data,
+                parent=self,
+            ),
+            "Saving workspace record…",
+        )
+
+    def _delete_record(self) -> None:
+        item = self.records_list.currentItem()
+        if item is None:
+            return
+        record = item.data(Qt.ItemDataRole.UserRole)
+        answer = QMessageBox.question(
+            self,
+            "Delete record",
+            f"Delete backend record {record['id']}?",
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        self._reload_after_request = True
+        self._start_request(
+            _RequestWorker(
+                "delete",
+                self.collection,
+                record_id=record["id"],
+                parent=self,
+            ),
+            "Deleting workspace record…",
+        )
+
     def _start_request(self, worker: _RequestWorker, message: str) -> None:
         if self._worker is not None and self._worker.isRunning():
             return
@@ -152,6 +252,9 @@ class WorkspaceRecordsPage(QWidget):
         self.state_label.setText(message)
         self.refresh_button.setEnabled(False)
         self.login_button.setEnabled(False)
+        self.create_button.setEnabled(False)
+        self.edit_button.setEnabled(False)
+        self.delete_button.setEnabled(False)
         worker.completed.connect(self._request_completed)
         worker.failed.connect(self._request_failed)
         worker.finished.connect(self._request_finished)
@@ -163,6 +266,10 @@ class WorkspaceRecordsPage(QWidget):
             self._update_session_controls()
             self._load_after_login = True
             return
+        operation = self._worker.operation if self._worker is not None else None
+        if operation in {"create", "update", "delete"}:
+            self.state_label.setText("Workspace record saved to the backend.")
+            return
         self._render_records(result)
 
     def _request_failed(self, message: str) -> None:
@@ -172,40 +279,39 @@ class WorkspaceRecordsPage(QWidget):
         operation = self._worker.operation if self._worker is not None else None
         self.refresh_button.setEnabled(True)
         self.login_button.setEnabled(True)
+        self.create_button.setEnabled(True)
+        self.edit_button.setEnabled(self.records_list.currentItem() is not None)
+        self.delete_button.setEnabled(self.records_list.currentItem() is not None)
         self._worker = None
         if operation == "login" and self._load_after_login:
             self._load_after_login = False
             self._load()
+        elif operation in {"create", "update", "delete"} and self._reload_after_request:
+            self._reload_after_request = False
+            self._load()
 
     def _render_records(self, records: Any) -> None:
-        while self.records_layout.count() > 1:
-            item = self.records_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+        self.records_list.clear()
+        self.record_details.clear()
         if not records:
             self.state_label.setText("No records are available for this account.")
             return
         self.state_label.setText(f"{len(records)} backend record(s).")
         for record in records:
-            data = record["data"]
-            lines = [
-                f"{key.replace('_', ' ').title()}: {value}"
-                for key, value in data.items()
-                if value is not None and isinstance(value, (str, int, float, bool))
-            ]
-            title = next(
-                (
-                    str(data[key])
-                    for key in ("title", "name", "callsign")
-                    if data.get(key) is not None
-                ),
-                str(record.get("id", "Record")),
-            )
-            card = QLabel("\n".join((title, *lines)))
-            card.setWordWrap(True)
-            card.setTextFormat(Qt.TextFormat.PlainText)
-            card.setProperty("variant", "card")
-            self.records_layout.insertWidget(self.records_layout.count() - 1, card)
+            item = QListWidgetItem(str(record.get("id", "Record")))
+            item.setData(Qt.ItemDataRole.UserRole, record)
+            self.records_list.addItem(item)
+        self.edit_button.setEnabled(False)
+        self.delete_button.setEnabled(False)
+
+    def _show_record(self, current: Optional[QListWidgetItem], previous: Optional[QListWidgetItem]) -> None:
+        del previous
+        record = current.data(Qt.ItemDataRole.UserRole) if current is not None else None
+        self.record_details.setPlainText(
+            json.dumps(record.get("data", {}), indent=2) if record else ""
+        )
+        self.edit_button.setEnabled(record is not None)
+        self.delete_button.setEnabled(record is not None)
 
     def _sign_out(self) -> None:
         _api_client.set_token("")
@@ -217,6 +323,9 @@ class WorkspaceRecordsPage(QWidget):
         signed_in = bool(_api_client.headers.get("Authorization"))
         self.login_panel.setVisible(not signed_in)
         self.sign_out_button.setVisible(signed_in)
+        self.create_button.setVisible(signed_in)
+        self.edit_button.setVisible(signed_in)
+        self.delete_button.setVisible(signed_in)
         self.session_label.setText(
             "Backend account connected" if signed_in else "Backend account not connected"
         )

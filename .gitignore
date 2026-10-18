@@ -62,6 +62,20 @@ htmlcov/
 *.db
 
 # =========================
+# Datasets & Model Artifacts
+# =========================
+*.pth
+*.pt
+*.onnx
+*.tflite
+*.h5
+*.keras
+resq_ai/**/data/raw/
+resq_ai/**/data/processed/
+resq_ai/**/artifacts/
+resq_ai/**/checkpoints/
+
+# =========================
 # Node (if any)
 # =========================
 node_modules/
